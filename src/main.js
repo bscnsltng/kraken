@@ -10,6 +10,7 @@ import { createKrakenOverlays } from './kraken.js';
 import { createPlankton } from './particles.js';
 import { createWaves } from './waves.js';
 import { createRobots } from './robots.js';
+import { mountOverlay } from './overlay.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -62,6 +63,7 @@ const { scene, camera, renderer } = createScene(wrap);
   const plankton = createPlankton(scene);
   const waves = createWaves(scene);
   const robots = createRobots(scene);
+  const overlay = mountOverlay(document.getElementById('overlay'));
 
   const clock = new THREE.Clock();
   function loop() {
