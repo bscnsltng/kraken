@@ -27,9 +27,14 @@ import { createAudio } from './audio.js';
 import { setupDebug } from './debug.js';
 import { createWatchdog } from './watchdog.js';
 import { setupContextRecovery } from './context-recovery.js';
+import { webglOK, showFallback } from './fallback.js';
 
 const wrap = document.getElementById('canvas-wrap');
-const { scene, camera, renderer } = createScene(wrap);
+
+if (!webglOK()) {
+  showFallback();
+} else {
+  const { scene, camera, renderer } = createScene(wrap);
 
 (async () => {
   const { audioEnabled } = await setupSplash();
@@ -236,6 +241,7 @@ const { scene, camera, renderer } = createScene(wrap);
   console.log('[kraken] assets loaded, hero on stage');
   window.__audioEnabled = audioEnabled;
 })();
+} // end else (webglOK)
 
 function showAssetError(err) {
   clear(document.body);
