@@ -89,7 +89,7 @@ export function setupPostProcessing(renderer, scene, camera) {
     uSplitToneShadow:    { value: new THREE.Vector3(0.85, 1.02, 1.08) },
     uSplitToneHighlight: { value: new THREE.Vector3(1.08, 1.02, 0.92) },
     uSplitToneAmount:    { value: 0.0 },
-    uDepthFog:           { value: 0.20 },
+    uDepthFog:           { value: 0.0 },   // disabled — was creating a purple haze in the dark void
     uLensDistort:        { value: 0.015 },
   };
   const fxPass = new ShaderPass({ uniforms: fxUniforms, vertexShader: FX_VERT, fragmentShader: FX_FRAG });

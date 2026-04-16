@@ -111,7 +111,7 @@ if (!webglOK()) {
     const marineAccents = await createMarineAccents(scene);
 
     // +0.2 theatrical cone spotlight on the kraken (additive)
-    const spotU = { uTime: { value: 0 }, uIntensity: { value: 1.6 } };
+    const spotU = { uTime: { value: 0 }, uIntensity: { value: 1.1 } };
     const spotMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 2),
       new THREE.ShaderMaterial({

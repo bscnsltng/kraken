@@ -37,9 +37,12 @@ export const spotlightFragment = /* glsl */ `
 
     float b = cone * falloff * breathe * uIntensity;
 
-    // Warm gold-teal mix (slightly more gold than teal so the kraken reads
-    // "champion / hero-lit" rather than ghostly).
-    vec3 col = vec3(0.95, 0.88, 0.65) * b;
+    // Cool pale-white light — warmer tones (the prior gold-cream) mixed
+    // additively with the dark purple void to read as a muddy desaturated
+    // haze "cloud" in the center. A near-white cyan-tinted light stays in
+    // the same color family as the void and reads cleanly as illumination
+    // rather than as a cloud.
+    vec3 col = vec3(0.82, 0.92, 1.00) * b;
 
     gl_FragColor = vec4(col, b * 0.85);
   }
