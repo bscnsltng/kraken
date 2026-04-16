@@ -1,0 +1,13 @@
+{
+  "name": "kraken-backdrop",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate-art": "node scripts/generate-art.mjs",
+    "generate-tts": "node scripts/generate-tts.mjs"
+  },
+  "devDependencies": {
+    "openai": "^4.76.0",
+    "dotenv": "^16.4.5"
+  }
+}
