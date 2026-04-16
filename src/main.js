@@ -21,6 +21,7 @@ import { beatDown } from './moments/beat-down.js';
 import { borderSurge } from './moments/border-surge.js';
 import { inkVertex, inkFragment } from './shaders/ink.glsl.js';
 import { inkEruption } from './moments/ink-eruption.js';
+import { setupPostProcessing } from './postprocess.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -130,11 +131,7 @@ const { scene, camera, renderer } = createScene(wrap);
     frame();
   }
 
-  // Stubs (filled in by Task 21 for postFx, Task 23 for audio)
-  const postFx = {
-    flash(_a) {}, bloomBoost(_b, _d) {}, desaturate(_a, _d) {}, chromaticBurst(_s) {},
-    bloomPass: { enabled: true }, update() {}, composer: { render() { renderer.render(scene, camera); } },
-  };
+  const postFx = setupPostProcessing(renderer, scene, camera);
   let audio = null;
 
   const variants = {
@@ -186,7 +183,8 @@ const { scene, camera, renderer } = createScene(wrap);
     }
     scheduler.tick(dt);
     lightning.update(dt);
-    renderer.render(scene, camera);
+    postFx.update(t);
+    postFx.composer.render();
     requestAnimationFrame(loop);
   }
   loop();
