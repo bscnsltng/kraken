@@ -1,3 +1,5 @@
+> **Note:** The primary booth deliverable is now `backdrop-final.html` — an animated, GPU-rendered HTML projection. The prompts below remain available for derivative print and social-media artwork. See `docs/superpowers/specs/2026-04-16-kraken-backdrop-animated-design.md`.
+
 # 43146K KRAKEN — AI Image Generation Prompts
 
 Use these prompts to generate the final production-quality backdrop image.

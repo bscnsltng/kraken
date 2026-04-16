@@ -6,12 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A **creative design deliverable**, not a software project. The artifact is a projected booth backdrop for team **43146K KRAKEN** (Barbe High School, Lake Charles, LA) at the VEX Robotics World Championship *Pushback* season. Concept: *"PUSHBACK: A Kraken's Warning"* — fierce + festive (Louisiana Mardi Gras) + cinematic.
 
-Two deliverables live at the repo root:
+Three deliverables live at the repo root:
 
-- `backdrop-mockup.html` — a single self-contained HTML/CSS/SVG file that approximates the final design in the browser. This is the **composition reference**, not the shipped art.
-- `ai-prompt.md` — Midjourney and Adobe Firefly / DALL-E prompts that produce the final 3000×3000 PNG, plus post-generation compositing steps.
-
-The mockup embeds two PNG assets by relative path: `Kraken 43146K Logo.png` (hero) and `VEX Worlds Logo copy.png` (border corner). Both must stay in the repo root for the HTML to render.
+- `backdrop-final.html` — **primary deliverable.** A GPU-accelerated animated backdrop projected fullscreen at the booth. Single self-contained HTML file (~2-3 MB), bundled from sources in `src/` via `scripts/bundle.mjs`.
+- `backdrop-mockup.html` — static low-fi mockup. Used as a fallback when WebGL is unavailable, and as a quick-reference composition.
+- `ai-prompt.md` — Midjourney / Adobe Firefly / DALL-E prompts for derivative print and social-media artwork.
 
 ## Preview / "build" / "test"
 
@@ -22,6 +21,30 @@ open backdrop-mockup.html   # macOS
 ```
 
 Verification is visual against the checklist in `docs/superpowers/plans/2026-04-15-kraken-booth-backdrop.md` (Task 9, Step 2). Every element in that checklist must be visible.
+
+## Building the animated backdrop
+
+The animated backdrop is developed as multiple ES modules under `src/` and bundled into a single self-contained HTML.
+
+**Dev preview** (live editing, uses ES modules):
+
+    python3 -m http.server 8000
+    # then open http://localhost:8000/backdrop-dev.html
+
+ES modules require a real HTTP server — opening `backdrop-dev.html` via `file://` will not work.
+
+**Bundle to single-file deliverable:**
+
+    node scripts/bundle.mjs
+    # writes backdrop-final.html (PNG assets inlined as base64)
+
+`backdrop-final.html` runs from `file://` directly — drag it into Chrome.
+
+**Run the scheduler tests:**
+
+Open `http://localhost:8000/tests/scheduler.test.html` in a browser. All assertions should be green.
+
+**Safe-DOM rule:** runtime DOM construction in `src/` uses the `el` / `svg` / `clear` helpers from `src/dom.js`. Stick to `createElement`, `createElementNS`, `textContent`, `appendChild`, `setAttribute`. Don't reach for HTML-string setters or sync HTML insertion APIs.
 
 ## Architecture — why the HTML is the way it is
 
