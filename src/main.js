@@ -26,6 +26,7 @@ import { setupSplash } from './splash.js';
 import { createAudio } from './audio.js';
 import { setupDebug } from './debug.js';
 import { createWatchdog } from './watchdog.js';
+import { setupContextRecovery } from './context-recovery.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -195,6 +196,13 @@ const { scene, camera, renderer } = createScene(wrap);
       if (lvl === 2) postFx.bloomPass.enabled = false;
       if (lvl === 3) window.__directRender = true;
     },
+  });
+
+  setupContextRecovery(renderer.domElement, () => {
+    loadAssets().then(reloaded => {
+      hero.material.map = reloaded.kraken;
+      hero.material.needsUpdate = true;
+    }).catch(err => console.error('[ctx] texture reload failed:', err));
   });
 
   const clock = new THREE.Clock();
