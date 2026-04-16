@@ -23,5 +23,10 @@ export function createScene(container) {
   window.addEventListener('orientationchange', resize);
   resize();
 
-  return { scene, camera, renderer, resize };
+  function breathingScale(t) {
+    // 18s sin period, range 1.0 .. 1.02
+    return 1.0 + 0.01 * (1 + Math.sin((t / 18.0) * Math.PI * 2));
+  }
+
+  return { scene, camera, renderer, resize, breathingScale };
 }
