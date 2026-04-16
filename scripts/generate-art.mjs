@@ -13,10 +13,14 @@ mkdirSync(ART_DIR, { recursive: true });
 
 const force = process.argv.includes('--force');
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  project: process.env.OPENAI_PROJECT_ID,
-});
+// Support both OPENAI_API_KEY (standard) and openai_platform_api_key (this repo's .env).
+const apiKey   = process.env.OPENAI_API_KEY        || process.env.openai_platform_api_key;
+const project  = process.env.OPENAI_PROJECT_ID     || process.env.openai_platform_project_id;
+if (!apiKey) {
+  console.error('[generate-art] no API key found (set OPENAI_API_KEY or openai_platform_api_key in .env)');
+  process.exit(1);
+}
+const client = new OpenAI({ apiKey, project });
 
 const ASSETS = [
   {
