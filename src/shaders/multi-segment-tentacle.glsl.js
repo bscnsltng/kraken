@@ -60,9 +60,12 @@ export const tentacleFragment = /* glsl */ `
     float u = vUv.x;
     float v = vUv.y;
 
-    // Soft body alpha — strong at body center, falls off toward edges.
+    // Sharp body alpha — previously 55% of the width was soft-gradient
+    // which read as "purple cloud" at the visible base. Now only the outer
+    // 12% fades; the interior is solid. Plus a hard alpha cutoff so the
+    // tentacle has a defined silhouette instead of a diffuse halo.
     float centerDist = abs(v - 0.5) * 2.0;  // 0 at center, 1 at edges
-    float body = 1.0 - smoothstep(0.45, 1.0, centerDist);
+    float body = 1.0 - smoothstep(0.82, 0.96, centerDist);
 
     // Base color: the logo's royal purple.
     vec3 col = uColor;
@@ -88,10 +91,13 @@ export const tentacleFragment = /* glsl */ `
     float edgeRim = smoothstep(0.78, 1.0, centerDist);
     col = mix(col, uEdge, edgeRim * 0.55);
 
-    // Alpha: strongest at base, fades a bit toward tip. Edge fadeout.
+    // Alpha: strongest at base, fades a bit toward tip. Edge fadeout
+    // sharper than before to keep a crisp silhouette (not hazy blob).
     float lengthFade = 1.0 - 0.15 * u;
-    float edgeFade = 1.0 - smoothstep(0.88, 1.0, centerDist);
-    float a = body * lengthFade * edgeFade * 0.95;
+    float edgeFade = 1.0 - smoothstep(0.93, 1.0, centerDist);
+    float a = body * lengthFade * edgeFade;
+    // Hard cutoff: anything dimmer than 0.18 is invisible (no halo).
+    if (a < 0.18) a = 0.0;
 
     gl_FragColor = vec4(col, a);
   }

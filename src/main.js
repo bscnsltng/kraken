@@ -107,8 +107,12 @@ if (!webglOK()) {
     // +0.4 tentacles
     const tentacles = createTentacles(scene);
 
-    // -2.2/-2.3/-2.4 marine accents (deep, phantom-like)
-    const marineAccents = await createMarineAccents(scene);
+    // Marine accents intentionally removed per user direction — the soft
+    // diffuse alpha of the PNG silhouettes (jellyfish/squid/anglerfish at
+    // low opacity) was reading as "purple clouds" flanking the kraken
+    // rather than as distinct creatures. Module kept on disk for a future
+    // pass where we'd render them harder-edged or only far from center.
+    const marineAccents = { update() {} };
 
     // +0.2 theatrical cone spotlight on the kraken (additive)
     const spotU = { uTime: { value: 0 }, uIntensity: { value: 1.1 } };
