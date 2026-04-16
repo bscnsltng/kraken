@@ -25,6 +25,7 @@ import { setupPostProcessing } from './postprocess.js';
 import { setupSplash } from './splash.js';
 import { createAudio } from './audio.js';
 import { setupDebug } from './debug.js';
+import { createWatchdog } from './watchdog.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -186,6 +187,16 @@ const { scene, camera, renderer } = createScene(wrap);
     getState: () => activeSteps ? 'moment' : 'idle',
   });
 
+  createWatchdog({
+    getFps: () => fpsCurrent,
+    onDegrade: (lvl, fps) => {
+      console.warn('[watchdog] degrade level', lvl, 'avg fps', fps.toFixed(1));
+      if (lvl === 1) plankton.setCount(400);
+      if (lvl === 2) postFx.bloomPass.enabled = false;
+      if (lvl === 3) window.__directRender = true;
+    },
+  });
+
   const clock = new THREE.Clock();
   let lastT = 0;
   function loop() {
@@ -209,8 +220,8 @@ const { scene, camera, renderer } = createScene(wrap);
     }
     scheduler.tick(dt);
     lightning.update(dt);
-    postFx.update(t);
-    postFx.composer.render();
+    if (window.__directRender) renderer.render(scene, camera);
+    else { postFx.update(t); postFx.composer.render(); }
     requestAnimationFrame(loop);
   }
   loop();
