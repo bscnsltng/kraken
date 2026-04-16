@@ -10,7 +10,7 @@
 
 ## Overview
 
-A **single-file, self-contained HTML document (`backdrop-final.html`)** that renders a cinematic, GPU-accelerated animated version of the booth backdrop and is projected fullscreen onto the team's 8×8 ft fabric backdrop at the booth. Replaces the previously-planned static PNG output as the primary projected artifact. The original static mockup (`backdrop-mockup.html`) is retained as a low-fi fallback for hardware that cannot run WebGL.
+A **multi-file static site rooted at `index.html`** that renders a cinematic, GPU-accelerated animated version of the booth backdrop and is projected fullscreen onto the team's 8×8 ft fabric backdrop at the booth. Replaces the previously-planned static PNG output as the primary projected artifact. Hosted at `https://kraken.bscnsltng.com/` via a static host + CDN. The original static mockup (`backdrop-mockup.html`) is retained as a low-fi fallback for hardware that cannot run WebGL.
 
 The design preserves every locked element of the prior spec — composition, color palette, canonical strings, asset placement, the 1:1 square canvas — and layers cinematic motion, scripted "moments," and projector-grade polish on top.
 
@@ -52,7 +52,7 @@ The design preserves every locked element of the prior spec — composition, col
 
 **Rationale:** GPU-accelerated rendering is the only way to hit the cinematic-grade visual ceiling the team wants (depth, particles, post-processing). Three.js was chosen over hand-rolled WebGL2 to keep the code maintainable and the EffectComposer chain (bloom, chromatic aberration, vignette, film grain) trivial to set up. Text and border are kept in HTML/CSS so they render pixel-crisp at any projector resolution without SDF-font complexity.
 
-**Single-file delivery:** Three.js, the EffectComposer chain, and (optionally) audio assets are inlined into `backdrop-final.html`. Result is one ~2–3 MB file that runs offline. No CDN dependency. The two source PNGs are loaded by relative path from the same directory.
+**Static-site delivery:** the repo IS the deliverable — `index.html` + the `src/` tree (with vendored Three.js + post-processing addons + ES modules) + the two PNGs at the repo root. No build step. Served from a static host with a CDN in front (`https://kraken.bscnsltng.com/`). Module resolution: `index.html` declares an importmap mapping the bare `"three"` specifier to `./src/vendor/three.module.min.js`; everything else uses plain relative imports.
 
 ---
 
@@ -220,16 +220,19 @@ Off by default. Used only during the night-before soak test.
 ## Deliverable & File Structure
 
 ```
-backdrop-final.html       ← new — the projected deliverable (this spec)
-backdrop-mockup.html      ← unchanged — fallback + reference
-ai-prompt.md              ← unchanged content + note added (see below)
+index.html                ← entry point — served at https://kraken.bscnsltng.com/
+src/                      ← ES modules + vendored Three.js + post-processing addons
+backdrop-mockup.html      ← unchanged — WebGL fallback + reference
+ai-prompt.md              ← unchanged content + note added
+CNAME                     ← kraken.bscnsltng.com (GitHub Pages custom-domain marker)
 Kraken 43146K Logo.png    ← unchanged
 VEX Worlds Logo copy.png  ← unchanged
+tests/scheduler.test.html ← browser-runnable unit tests for the moment scheduler
 ```
 
-The mockup and the final renderer are **independent** — no shared CSS or JS. The only cross-reference is the WebGL-fallback splash button that opens the mockup.
+The mockup and the animated entry point are **independent** — no shared CSS or JS. The only cross-reference is the WebGL-fallback page that links to the mockup.
 
-`ai-prompt.md` gains a top-of-file note clarifying that the primary deliverable is now `backdrop-final.html`, and the prompts remain available for derivative print / social-media artwork.
+`ai-prompt.md` gains a top-of-file note clarifying that the primary deliverable is now the animated `index.html`, and the prompts remain available for derivative print / social-media artwork.
 
 ---
 
@@ -238,7 +241,7 @@ The mockup and the final renderer are **independent** — no shared CSS or JS. T
 Ships in the spec for whoever drives the booth:
 
 1. Plug projector. Confirm 1:1 keystone fits the 8×8 fabric backdrop.
-2. Open `backdrop-final.html` in **Chrome** on the booth laptop.
+2. Open `https://kraken.bscnsltng.com/` in **Chrome** on the booth laptop. (For an offline fallback, open `index.html` from a local clone via `python3 -m http.server` — `file://` will not work because of ES module loading.)
 3. Splash appears → confirm Auto-fullscreen ON, Audio toggle as desired (off by default).
 4. Click **ROUSE THE KRAKEN**.
 5. Verify ambient: tentacles sway, eyes pulse, plankton drift. Wait ~90 s — confirm one moment fires.

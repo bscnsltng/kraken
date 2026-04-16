@@ -1,8 +1,10 @@
 // src/postprocess.js — EffectComposer chain (bloom + custom FX)
 import * as THREE from './vendor/three.module.min.js';
-import {
-  EffectComposer, RenderPass, UnrealBloomPass, ShaderPass, OutputPass,
-} from './vendor/three-postprocessing.js';
+import { EffectComposer } from './vendor/EffectComposer.js';
+import { RenderPass } from './vendor/RenderPass.js';
+import { ShaderPass } from './vendor/ShaderPass.js';
+import { UnrealBloomPass } from './vendor/UnrealBloomPass.js';
+import { OutputPass } from './vendor/OutputPass.js';
 
 const FX_VERT = `varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`;
 const FX_FRAG = `

@@ -8,7 +8,7 @@ A **creative design deliverable**, not a software project. The artifact is a pro
 
 Three deliverables live at the repo root:
 
-- `index.html` / `backdrop-final.html` — **primary deliverable.** A GPU-accelerated animated backdrop projected fullscreen at the booth. Single self-contained HTML file (~2-3 MB), bundled from sources in `src/` via `scripts/bundle.mjs`. `index.html` is served at `https://kraken.bscnsltng.com/`; `backdrop-final.html` is the same content kept under its descriptive name.
+- `index.html` + `src/` — **primary deliverable.** A GPU-accelerated animated backdrop served at `https://kraken.bscnsltng.com/`. Multi-file static site: `index.html` is the entry, `src/` ships ES modules + vendored Three.js + post-processing addons, PNGs sit at the repo root. No build step.
 - `backdrop-mockup.html` — static low-fi mockup. Used as a fallback when WebGL is unavailable, and as a quick-reference composition.
 - `ai-prompt.md` — Midjourney / Adobe Firefly / DALL-E prompts for derivative print and social-media artwork.
 
@@ -22,27 +22,22 @@ open backdrop-mockup.html   # macOS
 
 Verification is visual against the checklist in `docs/superpowers/plans/2026-04-15-kraken-booth-backdrop.md` (Task 9, Step 2). Every element in that checklist must be visible.
 
-## Building the animated backdrop
+## Running the animated backdrop
 
-The animated backdrop is developed as multiple ES modules under `src/` and bundled into a single self-contained HTML.
+No build step. The whole repo is the deliverable; serve it with any static HTTP server (or push to a CDN-fronted static host like GitHub Pages).
 
-**Dev preview** (live editing, uses ES modules):
+**Local dev / preview:**
 
     python3 -m http.server 8000
-    # then open http://localhost:8000/backdrop-dev.html
+    # then open http://localhost:8000/index.html
 
-ES modules require a real HTTP server — opening `backdrop-dev.html` via `file://` will not work.
+ES modules require a real HTTP server — opening `index.html` via `file://` will not work because the browser won't fetch sibling modules from `file://` origins.
 
-**Bundle to single-file deliverable:**
-
-    node scripts/bundle.mjs
-    # writes backdrop-final.html (PNG assets inlined as base64)
-
-`backdrop-final.html` runs from `file://` directly — drag it into Chrome.
+**Module resolution:** `index.html` declares an importmap mapping the bare specifier `"three"` to `./src/vendor/three.module.min.js`. The vendored Three.js post-processing addons import `from 'three'` unmodified; that map is how it resolves. All other imports inside `src/` use plain relative paths (`./scheduler.js`, `./vendor/EffectComposer.js`, etc.).
 
 **Run the scheduler tests:**
 
-Open `http://localhost:8000/tests/scheduler.test.html` in a browser. All assertions should be green.
+Open `http://localhost:8000/tests/scheduler.test.html` in a browser. Page title shows `✓ N passed` if green, `✗ N failed` if red.
 
 **Safe-DOM rule:** runtime DOM construction in `src/` uses the `el` / `svg` / `clear` helpers from `src/dom.js`. Stick to `createElement`, `createElementNS`, `textContent`, `appendChild`, `setAttribute`. Don't reach for HTML-string setters or sync HTML insertion APIs.
 
