@@ -24,6 +24,7 @@ import { inkEruption } from './moments/ink-eruption.js';
 import { setupPostProcessing } from './postprocess.js';
 import { setupSplash } from './splash.js';
 import { createAudio } from './audio.js';
+import { setupDebug } from './debug.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -168,9 +169,27 @@ const { scene, camera, renderer } = createScene(wrap);
     if (e.code === 'Space') { e.preventDefault(); scheduler.trigger(); }
   });
 
+  let fpsFrames = 0, fpsLast = performance.now(), fpsCurrent = 60;
+  function updateFps() {
+    fpsFrames++;
+    const now = performance.now();
+    if (now - fpsLast >= 1000) {
+      fpsCurrent = (fpsFrames * 1000) / (now - fpsLast);
+      fpsFrames = 0; fpsLast = now;
+    }
+  }
+  window.__forceMoment = (v) => runMoment(v);
+
+  setupDebug({
+    scheduler,
+    getFps: () => fpsCurrent,
+    getState: () => activeSteps ? 'moment' : 'idle',
+  });
+
   const clock = new THREE.Clock();
   let lastT = 0;
   function loop() {
+    updateFps();
     const t = clock.getElapsedTime();
     const dt = t - lastT; lastT = t;
     voidUniforms.uTime.value = t;
