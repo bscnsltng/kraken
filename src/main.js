@@ -22,11 +22,13 @@ import { borderSurge } from './moments/border-surge.js';
 import { inkVertex, inkFragment } from './shaders/ink.glsl.js';
 import { inkEruption } from './moments/ink-eruption.js';
 import { setupPostProcessing } from './postprocess.js';
+import { setupSplash } from './splash.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
 
 (async () => {
+  const { audioEnabled } = await setupSplash();
   let assets;
   try {
     assets = await loadAssets();
@@ -189,6 +191,7 @@ const { scene, camera, renderer } = createScene(wrap);
   }
   loop();
   console.log('[kraken] assets loaded, hero on stage');
+  window.__audioEnabled = audioEnabled;
 })();
 
 function showAssetError(err) {
