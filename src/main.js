@@ -3,6 +3,7 @@ import * as THREE from './vendor/three.module.min.js';
 import { createScene } from './scene.js';
 import { loadAssets } from './assets.js';
 import { el, clear } from './dom.js';
+import { voidVertex, voidFragment } from './shaders/void.glsl.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -16,6 +17,17 @@ const { scene, camera, renderer } = createScene(wrap);
     return;
   }
 
+  const voidUniforms = { uTime: { value: 0 } };
+  const voidMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(2, 2),
+    new THREE.ShaderMaterial({
+      vertexShader: voidVertex, fragmentShader: voidFragment,
+      uniforms: voidUniforms, depthWrite: false,
+    })
+  );
+  voidMesh.position.z = -5;
+  scene.add(voidMesh);
+
   const heroAspect = assets.kraken.image.width / assets.kraken.image.height;
   const heroW = 1.2;
   const heroH = heroW / heroAspect;
@@ -25,7 +37,10 @@ const { scene, camera, renderer } = createScene(wrap);
   );
   scene.add(hero);
 
+  const clock = new THREE.Clock();
   function loop() {
+    const t = clock.getElapsedTime();
+    voidUniforms.uTime.value = t;
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
