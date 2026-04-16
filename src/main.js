@@ -15,6 +15,7 @@ import { startBeadGlints } from './beads.js';
 import { createScheduler } from './scheduler.js';
 import { createLightning } from './lightning.js';
 import { lightningStrike } from './moments/lightning.js';
+import { krakenRoar } from './moments/roar.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -106,7 +107,7 @@ const { scene, camera, renderer } = createScene(wrap);
   };
   let audio = null;
 
-  const variants = { lightning: lightningStrike };
+  const variants = { lightning: lightningStrike, roar: krakenRoar };
 
   let activeSteps = null;
   let momentStart = 0;
