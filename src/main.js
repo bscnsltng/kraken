@@ -17,6 +17,7 @@ import { createLightning } from './lightning.js';
 import { lightningStrike } from './moments/lightning.js';
 import { krakenRoar } from './moments/roar.js';
 import { theWatching } from './moments/watching.js';
+import { beatDown } from './moments/beat-down.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -108,13 +109,13 @@ const { scene, camera, renderer } = createScene(wrap);
   };
   let audio = null;
 
-  const variants = { lightning: lightningStrike, roar: krakenRoar, watching: theWatching };
+  const variants = { lightning: lightningStrike, roar: krakenRoar, watching: theWatching, beat: beatDown };
 
   let activeSteps = null;
   let momentStart = 0;
   function runMoment(variantKey) {
     if (!variants[variantKey]) { console.warn('[moment] unknown variant', variantKey); return; }
-    const ctx = { plankton, krakenOverlays, lightning, waves, overlay, audio, postFx, krakenLurch, screenShake };
+    const ctx = { plankton, krakenOverlays, lightning, waves, overlay, audio, postFx, krakenLurch, screenShake, robots };
     const { steps } = variants[variantKey](ctx);
     activeSteps = steps.map(s => ({ ...s, fired: false }));
     momentStart = clock.getElapsedTime();
