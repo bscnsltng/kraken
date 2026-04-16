@@ -20,6 +20,7 @@ import { createCaustics } from './caustics.js';
 import { createInkWisps } from './ink-wisps.js';
 import { createPressurePulse } from './pressure-pulse.js';
 import { createAmbientEvents } from './ambient-events.js';
+import { createMarineAccents } from './marine-accents.js';
 import { lightningStrike } from './moments/lightning.js';
 import { krakenRoar } from './moments/roar.js';
 import { theWatching } from './moments/watching.js';
@@ -31,7 +32,6 @@ import { setupPostProcessing } from './postprocess.js';
 import { setupSplash, runBenchmark } from './splash.js';
 import { createAudio } from './audio.js';
 import { setupDebug } from './debug.js';
-import { createWatchdog } from './watchdog.js';
 import { setupContextRecovery } from './context-recovery.js';
 import { webglOK, showFallback } from './fallback.js';
 
@@ -49,11 +49,10 @@ if (!webglOK()) {
     let assets;
     try { assets = await assetsReady; } catch (err) { showAssetError(err); return; }
 
-    // Pre-flight: 1s benchmark to seed watchdog level
+    // Pre-flight benchmark is informational only — we always render at full
+    // quality per user direction ("top tier only, other can go away").
     const benchFps = await runBenchmark(1000);
-    let initialDegradeLevel = 0;
-    if (benchFps < 30) initialDegradeLevel = 1;
-    console.log('[preflight] benchFps=' + benchFps.toFixed(1) + ', initialDegradeLevel=' + initialDegradeLevel);
+    console.log('[preflight] benchFps=' + benchFps.toFixed(1) + ' (no auto-degrade — full quality enforced)');
 
     // -10 depth-void (procedural gradient base)
     const voidU = { uTime: { value: 0 } };
@@ -118,6 +117,9 @@ if (!webglOK()) {
 
     // +0.4 tentacles
     const tentacles = createTentacles(scene);
+
+    // -1.5/-1.6/-1.7 marine accents (jellyfish, anglerfish, squid drifting deep)
+    const marineAccents = await createMarineAccents(scene);
 
     // +0.5 ink wisps
     const inkWisps = createInkWisps(scene);
@@ -277,34 +279,10 @@ if (!webglOK()) {
       getState: () => activeSteps ? 'moment' : 'idle',
     });
 
-    createWatchdog({
-      getFps: () => fpsCurrent,
-      onDegrade: (lvl, fps) => {
-        console.warn('[watchdog] degrade level', lvl, 'avg fps', fps.toFixed(1));
-        if (lvl === 1) {
-          plankton.setCount(200);
-          marineSnow.setCount(140);
-          godrays.mesh.visible = false;
-          caustics.mesh.visible = false;
-        }
-        if (lvl === 2) {
-          postFx.bloomPass.enabled = false;
-          postFx.fxUniforms.uLensDistort.value = 0;
-          postFx.fxUniforms.uDepthFog.value = 0;
-          postFx.fxUniforms.uCA.value = 0;
-        }
-        if (lvl === 3) window.__directRender = true;
-        if (lvl === 4) window.location.replace('backdrop-mockup.html');
-      },
-    });
-
-    if (initialDegradeLevel >= 1) {
-      plankton.setCount(200);
-      marineSnow.setCount(140);
-      godrays.mesh.visible = false;
-      caustics.mesh.visible = false;
-      console.warn('[preflight] applied L1 degrade preemptively');
-    }
+    // Watchdog disabled by design — "top tier only" per user direction.
+    // FPS is still monitored (updateFps in loop) for debug overlay display,
+    // but no degrade ladder fires. If the booth laptop can't keep up, the
+    // correct fix is better hardware, not a silently-downgraded scene.
 
     setupContextRecovery(renderer.domElement, () => {
       loadAssets().then(reloaded => {
@@ -339,6 +317,7 @@ if (!webglOK()) {
         godrays.update(t);
         caustics.update(t);
         marineSnow.update();
+        marineAccents.update(t);
         tentacles.update(t);
         krakenOverlays.update(t);
         plankton.update(t);
@@ -357,8 +336,9 @@ if (!webglOK()) {
         }
         scheduler.tick(dt);
         lightning.update(dt);
-        if (window.__directRender) renderer.render(scene, camera);
-        else { postFx.update(t); postFx.composer.render(); }
+        // Always full-quality: post-fx always on.
+        postFx.update(t);
+        postFx.composer.render();
       }
       requestAnimationFrame(loop);
     }

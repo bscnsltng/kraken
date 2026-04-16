@@ -1,6 +1,13 @@
-// src/shaders/multi-segment-tentacle.glsl.js — organic multi-segment bend.
-// Replaces src/shaders/tentacles.glsl.js. Same fragment shader (taper + edge glow).
-// Vertex shader bends the tentacle through a chain of 4 sine waves.
+// src/shaders/multi-segment-tentacle.glsl.js — logo-style organic tentacle.
+//
+// Vertex: 4-sine multi-segment bend (sea-snake motion) + geometric taper
+//   (width shrinks along length so the tentacle is fat at base, needle at tip —
+//   matches the kraken logo's silhouette exactly; the old uniform-width ribbon
+//   read as a "purple stick").
+//
+// Fragment: top-highlight / bottom-shadow shading + faint suction-cup dot
+//   pattern on the underside + teal bioluminescent edge rim. Reads as a real
+//   cartooned tentacle, not a shader ribbon.
 export const tentacleVertex = /* glsl */ `
   uniform float uTime;
   uniform float uPhase;
@@ -13,19 +20,29 @@ export const tentacleVertex = /* glsl */ `
   void main() {
     vUv = uv;
 
+    // s: 0 at base, 1 at tip (along tentacle length)
     float s = uv.x;
 
+    // Multi-segment bend: chain of 4 sines along length → sea-snake curl.
     float t = uTime / uPeriod + uPhase;
     float bend  = sin( s * 6.28318 + t * 6.28318 ) * uAmp * s;
     bend       += sin( s * 12.56637 + t * 5.70   ) * uAmp * 0.5 * s;
     bend       += sin( s * 18.84955 + t * 4.30   ) * uAmp * 0.33 * s;
     bend       += sin( s * 25.13274 + t * 7.10   ) * uAmp * 0.18 * s;
 
-    vec2 p = position.xy - uPivot;
+    // Geometric taper: shrink the cross-section y toward the tip.
+    //   at s=0 (base): full width
+    //   at s=1 (tip):  ~12% width
+    float taperFactor = 1.0 - 0.88 * pow(s, 0.7);
+    float yTapered = position.y * taperFactor;
+
+    // Apply extra rigid rotation (moment beats) around the pivot.
+    vec2 p = vec2(position.x, yTapered) - uPivot;
     float ca = cos(uExtraRot), sa = sin(uExtraRot);
     p = vec2(ca * p.x - sa * p.y, sa * p.x + ca * p.y);
     p += uPivot;
 
+    // Apply lateral bend displacement (organic curl).
     p.y += bend;
 
     gl_Position = projectionMatrix * modelViewMatrix * vec4(p, position.z, 1.0);
@@ -37,11 +54,45 @@ export const tentacleFragment = /* glsl */ `
   varying vec2 vUv;
   uniform vec3 uColor;
   uniform vec3 uEdge;
+
   void main() {
-    float taper = 1.0 - vUv.x;
-    float edge = smoothstep(0.4, 1.0, abs(vUv.y - 0.5) * 2.0);
-    vec3 col = mix(uColor, uEdge, edge * 0.6);
-    float a = taper * (1.0 - edge * 0.3);
-    gl_FragColor = vec4(col, a * 0.85);
+    // u along length 0..1, v across width 0..1 (0 = bottom, 1 = top)
+    float u = vUv.x;
+    float v = vUv.y;
+
+    // Soft body alpha — strong at body center, falls off toward edges.
+    float centerDist = abs(v - 0.5) * 2.0;  // 0 at center, 1 at edges
+    float body = 1.0 - smoothstep(0.45, 1.0, centerDist);
+
+    // Base color: the logo's royal purple.
+    vec3 col = uColor;
+
+    // Top-side highlight — simulates rim light from above.
+    float topLight = smoothstep(0.35, 0.85, v);
+    col += vec3(0.18, 0.08, 0.12) * topLight;
+
+    // Bottom-side shadow.
+    float bottomShadow = smoothstep(0.65, 0.15, v);
+    col *= (1.0 - bottomShadow * 0.35);
+
+    // Suction-cup dots on underside.
+    if (v < 0.45 && v > 0.18) {
+      float dotU = fract(u * 10.0);
+      float dotV = fract((v - 0.18) * 4.0);
+      float dotD = distance(vec2(dotU, dotV), vec2(0.5));
+      float dot = 1.0 - smoothstep(0.18, 0.32, dotD);
+      col += vec3(0.12, 0.04, 0.08) * dot;
+    }
+
+    // Bioluminescent teal edge rim — only on the very edge of the body.
+    float edgeRim = smoothstep(0.78, 1.0, centerDist);
+    col = mix(col, uEdge, edgeRim * 0.55);
+
+    // Alpha: strongest at base, fades a bit toward tip. Edge fadeout.
+    float lengthFade = 1.0 - 0.15 * u;
+    float edgeFade = 1.0 - smoothstep(0.88, 1.0, centerDist);
+    float a = body * lengthFade * edgeFade * 0.95;
+
+    gl_FragColor = vec4(col, a);
   }
 `;

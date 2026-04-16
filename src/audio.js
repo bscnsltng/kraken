@@ -130,13 +130,18 @@ export function createAudio() {
     playVariant('thunder', { gain: 1.3 });
   }
 
-  // ── Growl (Kraken Roar): layered whale variant + voice accent ──
+  // ── Growl (Kraken Roar): whale variant, layered with a lower-pitched
+  //    copy for body. The TTS voice accent was removed — it read too
+  //    "robot voice" and undercut the wall of sound.
   function growl() {
     playVariant('roar', { gain: 1.0 });
-    // Voice accent layered on top, slightly delayed
+    // Second whale variant slightly delayed and pitched down for depth
     setTimeout(() => {
-      playVariant('voice', { gain: 0.9, varyPitch: false });
-    }, 350);
+      const handle = playVariant('roar', { gain: 0.55 });
+      if (handle && handle.src.playbackRate) {
+        handle.src.playbackRate.value = rand(0.55, 0.75);
+      }
+    }, 250);
   }
 
   // ── Muffle storm low-pass envelope for Roar ──
