@@ -11,6 +11,7 @@ import { createPlankton } from './particles.js';
 import { createWaves } from './waves.js';
 import { createRobots } from './robots.js';
 import { mountOverlay } from './overlay.js';
+import { startBeadGlints } from './beads.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -64,10 +65,13 @@ const { scene, camera, renderer } = createScene(wrap);
   const waves = createWaves(scene);
   const robots = createRobots(scene);
   const overlay = mountOverlay(document.getElementById('overlay'));
+  const beadGlints = startBeadGlints(document.getElementById('overlay'));
 
   const clock = new THREE.Clock();
+  let lastT = 0;
   function loop() {
     const t = clock.getElapsedTime();
+    const dt = t - lastT; lastT = t;
     voidUniforms.uTime.value = t;
     cloudsUniforms.uTime.value = t;
     tentacles.update(t);
@@ -75,6 +79,7 @@ const { scene, camera, renderer } = createScene(wrap);
     plankton.update();
     waves.update(t);
     robots.update(t);
+    beadGlints.update(dt);
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
