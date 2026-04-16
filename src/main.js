@@ -8,6 +8,7 @@ import { cloudsVertex, cloudsFragment } from './shaders/clouds.glsl.js';
 import { createTentacles } from './tentacles.js';
 import { createKrakenOverlays } from './kraken.js';
 import { createPlankton } from './particles.js';
+import { createWaves } from './waves.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -58,6 +59,7 @@ const { scene, camera, renderer } = createScene(wrap);
   const krakenOverlays = createKrakenOverlays(scene, heroBox);
 
   const plankton = createPlankton(scene);
+  const waves = createWaves(scene);
 
   const clock = new THREE.Clock();
   function loop() {
@@ -67,6 +69,7 @@ const { scene, camera, renderer } = createScene(wrap);
     tentacles.update(t);
     krakenOverlays.update(t);
     plankton.update();
+    waves.update(t);
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
