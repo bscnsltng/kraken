@@ -23,6 +23,7 @@ import { inkVertex, inkFragment } from './shaders/ink.glsl.js';
 import { inkEruption } from './moments/ink-eruption.js';
 import { setupPostProcessing } from './postprocess.js';
 import { setupSplash } from './splash.js';
+import { createAudio } from './audio.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -135,6 +136,10 @@ const { scene, camera, renderer } = createScene(wrap);
 
   const postFx = setupPostProcessing(renderer, scene, camera);
   let audio = null;
+  if (audioEnabled) {
+    audio = createAudio();
+    audio.startStorm();
+  }
 
   const variants = {
     lightning: lightningStrike, roar: krakenRoar, watching: theWatching,
