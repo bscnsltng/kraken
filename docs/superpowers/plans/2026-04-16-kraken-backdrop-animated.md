@@ -58,7 +58,7 @@
 
 ## Conventions
 
-- **All paths are relative to the repo root** (`/Users/brett/github/kraken/`).
+- **All paths are relative to the repo root** (the kraken project directory).
 - **The repo is not a git repo** (per the system context). Treat each task's file output as the working state. Skip the literal "commit" steps that often appear in TDD plans — they don't apply here. If the repo is later initialized, add commits per task.
 - **Browser preview during development:** serve the repo root with `python3 -m http.server 8000` and open `http://localhost:8000/backdrop-dev.html`. ES modules require a real HTTP server — `file://` won't work for the dev page.
 - **Color palette** (referenced everywhere): `--void #080010`, `--deep #1A0033`, `--royal #6B0AC9`, `--gold #FFD700`, `--green #00A550`, `--teal #00E5CC`, `--red #CC0000`, `--white #E8E8FF`.
@@ -81,7 +81,7 @@
 - [ ] **Step 1: Create directory structure**
 
 ```bash
-cd "/Users/brett/github/kraken"
+cd "$(git rev-parse --show-toplevel)"
 mkdir -p src/vendor src/shaders src/moments tests scripts
 ```
 
@@ -190,7 +190,7 @@ Open `http://localhost:8000/backdrop-dev.html`. Devtools console should show `[k
 - [ ] **Step 1: Download Three.js core**
 
 ```bash
-cd "/Users/brett/github/kraken/src/vendor"
+cd "$(git rev-parse --show-toplevel)/src/vendor"
 curl -L -o three.module.min.js "https://unpkg.com/three@0.160.0/build/three.module.min.js"
 ```
 
@@ -199,7 +199,7 @@ Verify: file is >300 KB.
 - [ ] **Step 2: Bundle the post-processing addons**
 
 ```bash
-cd "/Users/brett/github/kraken/src/vendor"
+cd "$(git rev-parse --show-toplevel)/src/vendor"
 {
   curl -sL "https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js"; echo
   curl -sL "https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/RenderPass.js"; echo
@@ -2534,7 +2534,7 @@ console.log(`[bundle] wrote ${OUT_HTML} (${(html.length / 1024).toFixed(0)} KB)`
 - [ ] **Step 2: Run the bundle**
 
 ```bash
-cd "/Users/brett/github/kraken"
+cd "$(git rev-parse --show-toplevel)"
 node scripts/bundle.mjs
 ```
 

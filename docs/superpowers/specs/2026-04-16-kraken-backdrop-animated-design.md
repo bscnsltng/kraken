@@ -162,7 +162,7 @@ Kraken releases a billowing ink cloud (Perlin-noise mask) that darkens ~60% of t
 Loaded state: dark page, kraken logo at 25% size, and:
 
 - **Primary action:** large gold button — `ROUSE THE KRAKEN`. Click requests fullscreen, starts render loop, hides splash. Single user-gesture also satisfies browser autoplay-with-sound rules.
-- **Toggle:** 🔊 Audio (default OFF). When on, ambient storm bed loops at ~25% with thunder/growl spikes during moments. Inlined as base64 OGG.
+- **Toggle:** 🔊 Audio (default OFF). When on, ambient storm bed loops at ~25% with thunder/growl spikes during moments. Generated via WebAudio synthesis (no asset files).
 - **Toggle:** 🖥️ Auto-fullscreen (default ON). Calls `requestFullscreen()` on the canvas container.
 
 Below the button, in tiny gray text:

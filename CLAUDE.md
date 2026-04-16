@@ -8,7 +8,7 @@ A **creative design deliverable**, not a software project. The artifact is a pro
 
 Three deliverables live at the repo root:
 
-- `backdrop-final.html` — **primary deliverable.** A GPU-accelerated animated backdrop projected fullscreen at the booth. Single self-contained HTML file (~2-3 MB), bundled from sources in `src/` via `scripts/bundle.mjs`.
+- `index.html` / `backdrop-final.html` — **primary deliverable.** A GPU-accelerated animated backdrop projected fullscreen at the booth. Single self-contained HTML file (~2-3 MB), bundled from sources in `src/` via `scripts/bundle.mjs`. `index.html` is served at `https://kraken.bscnsltng.com/`; `backdrop-final.html` is the same content kept under its descriptive name.
 - `backdrop-mockup.html` — static low-fi mockup. Used as a fallback when WebGL is unavailable, and as a quick-reference composition.
 - `ai-prompt.md` — Midjourney / Adobe Firefly / DALL-E prompts for derivative print and social-media artwork.
 
