@@ -6,17 +6,21 @@ const ROYAL = new THREE.Color(0x6B0AC9);
 const TEAL  = new THREE.Color(0x00E5CC);
 
 // Foreground corner tentacles (z=+0.3, in front of hero body)
+// amp is the organic-bend amplitude used by the multi-segment vertex shader
+// (chain of 4 sines along length). Previous values (0.04-0.05) read as
+// "purple sticks barely moving" — bumped ~2.5x so the sea-snake motion is
+// actually visible. Width also bumped so tentacles read against the dark void.
 const CORNER_SPECS = [
-  { pivot: [-0.13,  0.13], target: [-0.95,  0.92], width: 0.05, period: 4.2, phase: 0.00, amp: 0.04, lower: false },
-  { pivot: [ 0.13,  0.13], target: [ 0.95,  0.92], width: 0.05, period: 3.8, phase: 0.15, amp: 0.04, lower: false },
-  { pivot: [-0.13, -0.13], target: [-0.95, -0.62], width: 0.04, period: 5.1, phase: 0.27, amp: 0.05, lower: true  },
-  { pivot: [ 0.13, -0.13], target: [ 0.95, -0.62], width: 0.04, period: 4.7, phase: 0.07, amp: 0.05, lower: true  },
+  { pivot: [-0.13,  0.13], target: [-0.95,  0.92], width: 0.080, period: 4.2, phase: 0.00, amp: 0.11, lower: false },
+  { pivot: [ 0.13,  0.13], target: [ 0.95,  0.92], width: 0.080, period: 3.8, phase: 0.15, amp: 0.11, lower: false },
+  { pivot: [-0.13, -0.13], target: [-0.95, -0.62], width: 0.070, period: 5.1, phase: 0.27, amp: 0.13, lower: true  },
+  { pivot: [ 0.13, -0.13], target: [ 0.95, -0.62], width: 0.070, period: 4.7, phase: 0.07, amp: 0.13, lower: true  },
 ];
 
 // Distant side tentacles (z=-2, behind the kraken)
 const SIDE_SPECS = [
-  { pivot: [-0.20,  0.00], target: [-0.95,  0.00], width: 0.03, period: 6.0, phase: 0.21, amp: 0.03, lower: false },
-  { pivot: [ 0.20,  0.00], target: [ 0.95,  0.05], width: 0.03, period: 5.5, phase: 0.36, amp: 0.03, lower: false },
+  { pivot: [-0.20,  0.00], target: [-0.95,  0.00], width: 0.055, period: 6.0, phase: 0.21, amp: 0.09, lower: false },
+  { pivot: [ 0.20,  0.00], target: [ 0.95,  0.05], width: 0.055, period: 5.5, phase: 0.36, amp: 0.09, lower: false },
 ];
 
 function buildMesh(s, z, scene) {

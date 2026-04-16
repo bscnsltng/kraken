@@ -37,7 +37,7 @@ const COLOR_PALETTE = [
   [0.45, 0.05, 0.85]
 ];
 
-export function createZooplankton(scene, count = 1500) {
+export function createZooplankton(scene, count = 400) {
   const positions   = new Float32Array(count * 3);
   const sizes       = new Float32Array(count);
   const alphas      = new Float32Array(count);
@@ -49,8 +49,8 @@ export function createZooplankton(scene, count = 1500) {
     positions[i * 3 + 0] = (Math.random() * 2 - 1) * 0.95;
     positions[i * 3 + 1] = (Math.random() * 2 - 1) * 0.95;
     positions[i * 3 + 2] = -0.5 + Math.random() * 0.4;
-    sizes[i] = 1.5 + Math.random() * 3.5;
-    alphas[i] = 0.15 + Math.random() * 0.45;
+    sizes[i] = 1.2 + Math.random() * 2.5;
+    alphas[i] = 0.08 + Math.random() * 0.22;
     phases[i] = Math.random() * 12.0;
     const c = COLOR_PALETTE[Math.floor(Math.random() * 3)];
     colors[i * 3 + 0] = c[0];

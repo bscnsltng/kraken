@@ -5,7 +5,7 @@ import { causticsVertex, causticsFragment } from './shaders/caustics.glsl.js';
 export function createCaustics(scene) {
   const u = {
     uTime:          { value: 0 },
-    uIntensity:     { value: 0.45 },
+    uIntensity:     { value: 0.18 },
     uInkInfluence:  { value: 0 },
   };
   const mesh = new THREE.Mesh(
@@ -22,7 +22,7 @@ export function createCaustics(scene) {
   mesh.position.z = -2.5;
   scene.add(mesh);
 
-  let intensityTarget = 0.45;
+  let intensityTarget = 0.18;
   let intensityRate = 0.05;
   let inkTarget = 0;
   let inkRate = 0.05;
@@ -38,7 +38,7 @@ export function createCaustics(scene) {
       intensityTarget = target;
       intensityRate = 0.3;
       setTimeout(() => {
-        intensityTarget = 0.45;
+        intensityTarget = 0.18;
         intensityRate = 0.04;
       }, holdSec * 1000);
     },

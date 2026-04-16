@@ -24,7 +24,7 @@ const FRAG = `
   }
 `;
 
-export function createMarineSnow(scene, count = 600) {
+export function createMarineSnow(scene, count = 280) {
   const positions  = new Float32Array(count * 3);
   const sizes      = new Float32Array(count);
   const alphas     = new Float32Array(count);
@@ -35,7 +35,7 @@ export function createMarineSnow(scene, count = 600) {
     positions[i * 3 + 1] = Math.random() * 2 - 1;
     positions[i * 3 + 2] = -0.5 + Math.random() * 0.4;
     sizes[i] = 1.0 + Math.random() * 2.5;
-    alphas[i] = 0.10 + Math.random() * 0.30;
+    alphas[i] = 0.06 + Math.random() * 0.16;
     velocities[i * 2 + 0] = (Math.random() - 0.5) * 0.0005;
     velocities[i * 2 + 1] = -0.0008 - Math.random() * 0.0010;
   }
@@ -84,7 +84,7 @@ export function createMarineSnow(scene, count = 600) {
     },
     setCount(n) {
       for (let i = 0; i < count; i++) {
-        alphas[i] = i < n ? (0.10 + Math.random() * 0.30) : 0.0;
+        alphas[i] = i < n ? (0.06 + Math.random() * 0.16) : 0.0;
       }
       geo.attributes.aAlpha.needsUpdate = true;
     },

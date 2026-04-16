@@ -68,22 +68,26 @@ export function setupPostProcessing(renderer, scene, camera) {
   composer.setSize(size.x, size.y);
   composer.addPass(new RenderPass(scene, camera));
 
-  const bloomPass = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 1.2, 0.5, 0.35);
+  // Tuned DOWN from the initial Abyssal pass: strength 1.2→0.45, threshold
+  // 0.35→0.82 so only the brightest highlights (text, eye glow, lightning
+  // forks) actually bloom. Previously every additive particle was passing
+  // the threshold and whiting out the frame.
+  const bloomPass = new UnrealBloomPass(new THREE.Vector2(size.x, size.y), 0.45, 0.6, 0.82);
   composer.addPass(bloomPass);
 
   const fxUniforms = {
     tDiffuse:            { value: null },
     uTime:               { value: 0 },
-    uVignette:           { value: 0.85 },
-    uGrain:              { value: 0.04 },
-    uCA:                 { value: 0.1 },
+    uVignette:           { value: 0.55 },
+    uGrain:              { value: 0.025 },
+    uCA:                 { value: 0.05 },   // barely-there underwater glass
     uFlash:              { value: 0 },
     uDesat:              { value: 0 },
-    uSplitToneShadow:    { value: new THREE.Vector3(0.7, 1.05, 1.15) },
-    uSplitToneHighlight: { value: new THREE.Vector3(1.15, 1.05, 0.85) },
-    uSplitToneAmount:    { value: 0.55 },
-    uDepthFog:           { value: 0.4 },
-    uLensDistort:        { value: 0.03 },
+    uSplitToneShadow:    { value: new THREE.Vector3(0.85, 1.02, 1.08) },  // subtle teal shadows
+    uSplitToneHighlight: { value: new THREE.Vector3(1.08, 1.02, 0.92) },  // subtle amber highlights
+    uSplitToneAmount:    { value: 0.30 },
+    uDepthFog:           { value: 0.20 },
+    uLensDistort:        { value: 0.015 },
   };
   const fxPass = new ShaderPass({ uniforms: fxUniforms, vertexShader: FX_VERT, fragmentShader: FX_FRAG });
   composer.addPass(fxPass);

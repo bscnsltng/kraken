@@ -5,7 +5,7 @@ import { godraysVertex, godraysFragment } from './shaders/godrays.glsl.js';
 export function createGodrays(scene) {
   const u = {
     uTime:      { value: 0 },
-    uIntensity: { value: 1.0 },
+    uIntensity: { value: 0.40 },
     uSweep:     { value: 0 },
   };
   const mesh = new THREE.Mesh(
@@ -22,7 +22,7 @@ export function createGodrays(scene) {
   mesh.position.z = -3;
   scene.add(mesh);
 
-  let intensityTarget = 1.0;
+  let intensityTarget = 0.40;
   let intensityRate = 0.05;
 
   return {
@@ -36,7 +36,7 @@ export function createGodrays(scene) {
       intensityTarget = target;
       intensityRate = 0.3;
       setTimeout(() => {
-        intensityTarget = 1.0;
+        intensityTarget = 0.40;
         intensityRate = 0.04;
       }, holdSec * 1000);
     },

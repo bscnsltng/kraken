@@ -23,25 +23,32 @@ if (!apiKey) {
 const client = new OpenAI({ apiKey, project });
 
 const ASSETS = [
+  // Robots + marine accents use gpt-image-1 (true alpha channel support).
+  // The abyssal backdrop stays on DALL-E 3 (no transparency needed; opaque
+  // background IS the point — it's the scene).
   {
     name: 'robot-1.png',
-    prompt: 'A VEX robotics competition robot silhouette, dark royal purple ' +
-            '(#6B0AC9), square chassis with mecanum wheels, vertical lift ' +
-            'arm with end-effector claw, two glowing teal (#00E5CC) camera ' +
-            'eyes, single antenna on top, viewed from a slight 3/4 angle. ' +
-            'PNG with fully transparent background. Clean industrial design, ' +
-            'no text, no logos, no shadows beneath, isolated subject.',
+    model: 'gpt-image-1',
+    transparent: true,
+    prompt: 'Isolated VEX robotics competition robot on a pure transparent ' +
+            'background (no environment, no scene). Dark royal purple chassis ' +
+            '(#6B0AC9), square frame with mecanum wheels, vertical lift arm with ' +
+            'end-effector claw, two glowing teal (#00E5CC) camera eye indicators, ' +
+            'single antenna on top. Crisp clean vector-illustration feel, slight ' +
+            'side-3/4 angle. No text, no logos, no ground shadow, no backdrop.',
     size: '1024x1024',
   },
   {
     name: 'robot-2.png',
-    prompt: 'A VEX robotics competition robot silhouette, dark royal purple ' +
-            '(#6B0AC9), wider rectangular chassis with omni wheels, ' +
-            'horizontally-extending intake roller arm at the front, two ' +
-            'small glowing teal (#00E5CC) camera eyes, dual antennas, viewed ' +
-            'from a slight 3/4 angle (mirrored from the first robot). PNG ' +
-            'with fully transparent background. Clean industrial design, no ' +
-            'text, no logos, no shadows beneath, isolated subject.',
+    model: 'gpt-image-1',
+    transparent: true,
+    prompt: 'Isolated VEX robotics competition robot on a pure transparent ' +
+            'background (no environment, no scene). Dark royal purple chassis ' +
+            '(#6B0AC9), wider rectangular frame with omni wheels, horizontal ' +
+            'intake roller arm at front, two small glowing teal (#00E5CC) camera ' +
+            'eyes, dual antennas. Crisp clean vector-illustration feel, slight ' +
+            'side-3/4 angle mirrored from the other robot. No text, no logos, ' +
+            'no ground shadow, no backdrop.',
     size: '1024x1024',
   },
   {
@@ -60,27 +67,33 @@ const ASSETS = [
   },
   {
     name: 'accent-jellyfish.png',
-    prompt: 'A single translucent bioluminescent deep-sea jellyfish silhouette, ' +
-            'glowing teal and violet (#00E5CC, #6B0AC9), flowing tentacles ' +
-            'trailing below. PNG with fully transparent background. Soft inner ' +
-            'glow. Stylized but elegant. No text, isolated subject.',
+    model: 'gpt-image-1',
+    transparent: true,
+    prompt: 'Isolated single translucent bioluminescent deep-sea jellyfish on a ' +
+            'pure transparent background. Glowing teal and violet (#00E5CC, ' +
+            '#6B0AC9), flowing tentacles trailing below. Soft inner glow. ' +
+            'Stylized but elegant. No scene, no water, no background, no text.',
     size: '1024x1024',
   },
   {
     name: 'accent-anglerfish.png',
-    prompt: 'A single deep-sea anglerfish silhouette, dark royal purple body ' +
-            '(#6B0AC9), single bioluminescent lure dangling above its mouth ' +
-            'glowing teal (#00E5CC). Side profile. PNG with fully transparent ' +
-            'background. Sinister, predatory, but stylized. No text, isolated ' +
-            'subject.',
+    model: 'gpt-image-1',
+    transparent: true,
+    prompt: 'Isolated single deep-sea anglerfish on a pure transparent ' +
+            'background. Dark royal purple body (#6B0AC9), single bioluminescent ' +
+            'lure dangling above its mouth glowing teal (#00E5CC). Side profile. ' +
+            'Sinister, predatory, but stylized. No scene, no water, no ' +
+            'background, no text.',
     size: '1024x1024',
   },
   {
     name: 'accent-squid.png',
-    prompt: 'A small deep-sea squid silhouette, royal purple (#6B0AC9), ' +
-            'tentacles trailing, suggestion of luminescent spots along its ' +
-            'mantle in teal (#00E5CC). PNG with fully transparent background. ' +
-            'Side profile, subtle, stylized. No text, isolated subject.',
+    model: 'gpt-image-1',
+    transparent: true,
+    prompt: 'Isolated single deep-sea squid on a pure transparent background. ' +
+            'Royal purple body (#6B0AC9), tentacles trailing, suggestion of ' +
+            'luminescent spots along its mantle in teal (#00E5CC). Side profile, ' +
+            'subtle, stylized. No scene, no water, no background, no text.',
     size: '1024x1024',
   },
 ];
@@ -91,14 +104,21 @@ async function generate(asset) {
     console.log(`  - ${asset.name}: already exists, skipping (use --force to regenerate)`);
     return;
   }
-  console.log(`  - ${asset.name}: requesting generation...`);
-  const response = await client.images.generate({
-    model: 'dall-e-3',
+  console.log(`  - ${asset.name}: requesting generation (${asset.model || 'dall-e-3'})...`);
+  const params = {
+    model: asset.model || 'dall-e-3',
     prompt: asset.prompt,
     size: asset.size,
     n: 1,
-    response_format: 'b64_json',
-  });
+  };
+  // gpt-image-1 supports true transparency via `background: "transparent"`.
+  // DALL-E 3 does not; it returns base64 directly via response_format.
+  if (params.model === 'gpt-image-1') {
+    if (asset.transparent) params.background = 'transparent';
+  } else {
+    params.response_format = 'b64_json';
+  }
+  const response = await client.images.generate(params);
   const b64 = response.data[0].b64_json;
   const buf = Buffer.from(b64, 'base64');
   writeFileSync(dest, buf);

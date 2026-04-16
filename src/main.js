@@ -55,7 +55,7 @@ if (!webglOK()) {
     if (benchFps < 30) initialDegradeLevel = 1;
     console.log('[preflight] benchFps=' + benchFps.toFixed(1) + ', initialDegradeLevel=' + initialDegradeLevel);
 
-    // -10 depth-void
+    // -10 depth-void (procedural gradient base)
     const voidU = { uTime: { value: 0 } };
     const voidMesh = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 2),
@@ -65,6 +65,22 @@ if (!webglOK()) {
       })
     );
     voidMesh.position.z = -10; scene.add(voidMesh);
+
+    // -9 baked DALL-E abyssal backdrop (painterly depth behind procedural layers)
+    const backdropLoader = new THREE.TextureLoader();
+    backdropLoader.load('src/art/abyssal-backdrop.png', (tex) => {
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.minFilter = THREE.LinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      const backdrop = new THREE.Mesh(
+        new THREE.PlaneGeometry(2, 2),
+        // Low opacity so the procedural void still reads; the baked image
+        // adds painterly depth without dominating the palette.
+        new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.55, depthWrite: false })
+      );
+      backdrop.position.z = -9;
+      scene.add(backdrop);
+    });
 
     // -8 god-rays
     const godrays = createGodrays(scene);
@@ -266,8 +282,8 @@ if (!webglOK()) {
       onDegrade: (lvl, fps) => {
         console.warn('[watchdog] degrade level', lvl, 'avg fps', fps.toFixed(1));
         if (lvl === 1) {
-          plankton.setCount(750);
-          marineSnow.setCount(300);
+          plankton.setCount(200);
+          marineSnow.setCount(140);
           godrays.mesh.visible = false;
           caustics.mesh.visible = false;
         }
@@ -283,8 +299,8 @@ if (!webglOK()) {
     });
 
     if (initialDegradeLevel >= 1) {
-      plankton.setCount(750);
-      marineSnow.setCount(300);
+      plankton.setCount(200);
+      marineSnow.setCount(140);
       godrays.mesh.visible = false;
       caustics.mesh.visible = false;
       console.warn('[preflight] applied L1 degrade preemptively');
