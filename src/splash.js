@@ -21,6 +21,25 @@ function showFsHint() {
   setTimeout(() => hint.remove(), 3000);
 }
 
+// Pre-flight benchmark: measures FPS for `durationMs` and returns avg FPS.
+// Used by main.js after splash click to seed the watchdog level on weak hardware.
+export async function runBenchmark(durationMs = 1000) {
+  return new Promise((resolve) => {
+    let frames = 0;
+    const start = performance.now();
+    function tick() {
+      frames++;
+      const elapsed = performance.now() - start;
+      if (elapsed >= durationMs) {
+        resolve((frames * 1000) / elapsed);
+        return;
+      }
+      requestAnimationFrame(tick);
+    }
+    tick();
+  });
+}
+
 export function setupSplash({ assetsReady } = {}) {
   const splash = el('div', { id: 'splash' });
   splash.appendChild(el('img', { id: 'splash-logo', src: 'Kraken 43146K Logo.png', alt: '' }));
