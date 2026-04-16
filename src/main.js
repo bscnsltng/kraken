@@ -5,6 +5,7 @@ import { loadAssets } from './assets.js';
 import { el, clear } from './dom.js';
 import { voidVertex, voidFragment } from './shaders/void.glsl.js';
 import { cloudsVertex, cloudsFragment } from './shaders/clouds.glsl.js';
+import { createTentacles } from './tentacles.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -49,11 +50,14 @@ const { scene, camera, renderer } = createScene(wrap);
   );
   scene.add(hero);
 
+  const tentacles = createTentacles(scene);
+
   const clock = new THREE.Clock();
   function loop() {
     const t = clock.getElapsedTime();
     voidUniforms.uTime.value = t;
     cloudsUniforms.uTime.value = t;
+    tentacles.update(t);
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
