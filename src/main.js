@@ -4,6 +4,7 @@ import { createScene } from './scene.js';
 import { loadAssets } from './assets.js';
 import { el, clear } from './dom.js';
 import { depthVoidVertex, depthVoidFragment } from './shaders/depth-void.glsl.js';
+import { spotlightVertex, spotlightFragment } from './shaders/spotlight.glsl.js';
 import { cloudsVertex, cloudsFragment } from './shaders/clouds.glsl.js';
 import { createTentacles } from './tentacles.js';
 import { createKrakenOverlays } from './kraken.js';
@@ -65,21 +66,12 @@ if (!webglOK()) {
     );
     voidMesh.position.z = -10; scene.add(voidMesh);
 
-    // -9 baked DALL-E abyssal backdrop (painterly depth behind procedural layers)
-    const backdropLoader = new THREE.TextureLoader();
-    backdropLoader.load('src/art/abyssal-backdrop.png', (tex) => {
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.minFilter = THREE.LinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      const backdrop = new THREE.Mesh(
-        new THREE.PlaneGeometry(2, 2),
-        // Low opacity so the procedural void still reads; the baked image
-        // adds painterly depth without dominating the palette.
-        new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.55, depthWrite: false })
-      );
-      backdrop.position.z = -9;
-      scene.add(backdrop);
-    });
+    // Baked DALL-E abyssal backdrop intentionally NOT rendered — it was adding
+    // painterly noise (cloud texture at top, mountain silhouette at bottom)
+    // that fought the procedural depth-void shader and broke the focal
+    // hierarchy. Refined-minimalism pass: the clean shader gradient is the
+    // backdrop. Asset retained in src/art/ for print/social-media derivative
+    // use per the prior spec.
 
     // -8 god-rays
     const godrays = createGodrays(scene);
@@ -87,16 +79,13 @@ if (!webglOK()) {
     // -6 caustics
     const caustics = createCaustics(scene);
 
-    // -4 storm clouds
+    // Storm clouds intentionally NOT added to the scene in the refined-
+    // minimalism pass — they were contributing to the "purple wash at top
+    // of frame" that competed with the kraken silhouette. The cloudsU /
+    // cloudsMesh construction is kept dormant here in case moments want
+    // to re-enable them later; a future Lightning Strike moment could
+    // instantiate + fade them in briefly.
     const cloudsU = { uTime: { value: 0 } };
-    const cloudsMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(2, 2),
-      new THREE.ShaderMaterial({
-        vertexShader: cloudsVertex, fragmentShader: cloudsFragment,
-        uniforms: cloudsU, transparent: true, depthWrite: false,
-      })
-    );
-    cloudsMesh.position.z = -4; scene.add(cloudsMesh);
 
     // -3 marine snow
     const marineSnow = createMarineSnow(scene);
@@ -118,8 +107,22 @@ if (!webglOK()) {
     // +0.4 tentacles
     const tentacles = createTentacles(scene);
 
-    // -1.5/-1.6/-1.7 marine accents (jellyfish, anglerfish, squid drifting deep)
+    // -2.2/-2.3/-2.4 marine accents (deep, phantom-like)
     const marineAccents = await createMarineAccents(scene);
+
+    // +0.2 theatrical cone spotlight on the kraken (additive)
+    const spotU = { uTime: { value: 0 }, uIntensity: { value: 1.6 } };
+    const spotMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2),
+      new THREE.ShaderMaterial({
+        vertexShader: spotlightVertex, fragmentShader: spotlightFragment,
+        uniforms: spotU,
+        transparent: true, depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      })
+    );
+    spotMesh.position.z = 0.2;
+    scene.add(spotMesh);
 
     // +0.5 ink wisps
     const inkWisps = createInkWisps(scene);
@@ -312,12 +315,12 @@ if (!webglOK()) {
         hero.position.y = Math.cos(t / 8.2) * 0.004;
 
         voidU.uTime.value = t;
-        cloudsU.uTime.value = t;
         inkU.uTime.value = t;
         godrays.update(t);
         caustics.update(t);
         marineSnow.update();
         marineAccents.update(t);
+        spotU.uTime.value = t;
         tentacles.update(t);
         krakenOverlays.update(t);
         plankton.update(t);

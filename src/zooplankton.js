@@ -37,7 +37,7 @@ const COLOR_PALETTE = [
   [0.45, 0.05, 0.85]
 ];
 
-export function createZooplankton(scene, count = 400) {
+export function createZooplankton(scene, count = 120) {
   const positions   = new Float32Array(count * 3);
   const sizes       = new Float32Array(count);
   const alphas      = new Float32Array(count);
@@ -70,7 +70,9 @@ export function createZooplankton(scene, count = 400) {
   const mat = new THREE.ShaderMaterial({
     vertexShader: VERT, fragmentShader: FRAG,
     uniforms: { uTime: { value: 0 } },
-    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    // NormalBlending (not Additive) so overlapping motes don't pile up to
+    // white bokeh-balls; each particle reads on its own.
+    transparent: true, depthWrite: false, blending: THREE.NormalBlending,
   });
 
   const points = new THREE.Points(geo, mat);

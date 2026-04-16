@@ -78,14 +78,17 @@ export function setupPostProcessing(renderer, scene, camera) {
   const fxUniforms = {
     tDiffuse:            { value: null },
     uTime:               { value: 0 },
-    uVignette:           { value: 0.55 },
+    uVignette:           { value: 0.95 },
     uGrain:              { value: 0.025 },
     uCA:                 { value: 0.05 },   // barely-there underwater glass
     uFlash:              { value: 0 },
     uDesat:              { value: 0 },
-    uSplitToneShadow:    { value: new THREE.Vector3(0.85, 1.02, 1.08) },  // subtle teal shadows
-    uSplitToneHighlight: { value: new THREE.Vector3(1.08, 1.02, 0.92) },  // subtle amber highlights
-    uSplitToneAmount:    { value: 0.30 },
+    // Split-tone zeroed for now — it was pushing every pixel toward violet
+    // (shadow blue-lift × dark void = "purple wash"). Keeping uniforms for
+    // moments to opt-in briefly if desired.
+    uSplitToneShadow:    { value: new THREE.Vector3(0.85, 1.02, 1.08) },
+    uSplitToneHighlight: { value: new THREE.Vector3(1.08, 1.02, 0.92) },
+    uSplitToneAmount:    { value: 0.0 },
     uDepthFog:           { value: 0.20 },
     uLensDistort:        { value: 0.015 },
   };

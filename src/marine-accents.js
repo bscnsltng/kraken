@@ -15,7 +15,7 @@ const ACCENTS = [
     yBase: 0.45,       // hangs upper-middle
     yAmplitude: 0.05,
     yPeriod: 6,        // slow vertical bob
-    z: -1.6,
+    z: -2.3,
     scalePulsePeriod: 4,  // jellyfish "breathes" slightly
     scalePulseAmp: 0.08,
     direction: 1,
@@ -28,7 +28,7 @@ const ACCENTS = [
     yBase: -0.05,      // middle-lower
     yAmplitude: 0.03,
     yPeriod: 11,
-    z: -1.5,
+    z: -2.2,
     scalePulsePeriod: 0,
     scalePulseAmp: 0,
     direction: -1,     // right-to-left
@@ -41,7 +41,7 @@ const ACCENTS = [
     yBase: 0.15,
     yAmplitude: 0.07,
     yPeriod: 8,
-    z: -1.7,
+    z: -2.4,
     scalePulsePeriod: 0,
     scalePulseAmp: 0,
     direction: 1,
@@ -84,7 +84,7 @@ export async function createMarineAccents(scene) {
     const mat = new THREE.MeshBasicMaterial({
       map: tex,
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.32,
       depthWrite: false,
     });
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
@@ -117,7 +117,7 @@ export async function createMarineAccents(scene) {
 
         // Opacity fade at canvas edges (past ±0.95).
         const edgeFade = Math.max(0, 1 - Math.max(0, Math.abs(x) - 0.85) / 0.40);
-        a.mat.opacity = 0.65 * edgeFade;
+        a.mat.opacity = 0.32 * edgeFade;
 
         // Optional gentle scale pulse (jellyfish only)
         if (s.scalePulsePeriod > 0 && s.scalePulseAmp > 0) {

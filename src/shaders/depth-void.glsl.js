@@ -23,16 +23,18 @@ export const depthVoidFragment = /* glsl */ `
 
   void main() {
     vec2 p = vUv;
-    vec3 surface = vec3(0.04, 0.02, 0.18);
-    vec3 mid     = vec3(0.06, 0.00, 0.14);
-    vec3 abyss   = vec3(0.01, 0.00, 0.02);
+    // Darkened palette — the previous mid (0.06, 0, 0.14) was bright enough
+    // to wash out the kraken silhouette. Pulled ~40% darker so the kraken
+    // reads against a true abyssal murk; the spotlight is now the only
+    // meaningful light source on the hero.
+    vec3 surface = vec3(0.025, 0.012, 0.10);
+    vec3 mid     = vec3(0.030, 0.000, 0.075);
+    vec3 abyss   = vec3(0.005, 0.000, 0.010);
     vec3 col;
     col = mix(abyss, mid, smoothstep(0.0, 0.55, p.y));
     col = mix(col, surface, smoothstep(0.55, 1.0, p.y));
     float n = noise(p * 4.0 + vec2(uTime * 0.012, uTime * 0.005));
-    col += (n - 0.5) * 0.012;
-    float bottomCorner = max(0.0, 0.4 - distance(p, vec2(0.5, 0.0)));
-    col -= bottomCorner * 0.08;
+    col += (n - 0.5) * 0.010;
     gl_FragColor = vec4(col, 1.0);
   }
 `;

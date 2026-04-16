@@ -24,7 +24,7 @@ const FRAG = `
   }
 `;
 
-export function createMarineSnow(scene, count = 280) {
+export function createMarineSnow(scene, count = 100) {
   const positions  = new Float32Array(count * 3);
   const sizes      = new Float32Array(count);
   const alphas     = new Float32Array(count);

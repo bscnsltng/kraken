@@ -9,7 +9,11 @@ export function createOceanSurface(scene) {
     uTime:   { value: 0 },
     uRipple: { value: 0 },
   };
-  const geo = new THREE.PlaneGeometry(2, 0.5, 64, 8);
+  // Taller than the original 0.5 (25% of canvas) — now 0.76 (38%) so the
+  // kraken has a real pool of water to rise from instead of standing over a
+  // thin horizontal strip. More Y segments so the vertex displacement reads
+  // smoothly across the bigger surface.
+  const geo = new THREE.PlaneGeometry(2, 0.76, 96, 12);
   const mat = new THREE.ShaderMaterial({
     vertexShader: oceanVertex,
     fragmentShader: oceanFragment,
@@ -18,7 +22,7 @@ export function createOceanSurface(scene) {
     depthWrite: false,
   });
   const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.set(0, -0.65, 0.9);
+  mesh.position.set(0, -0.62, 0.9);
   scene.add(mesh);
 
   let rippleTarget = 0;
