@@ -10,7 +10,7 @@ export function lightningStrike(ctx) {
       { t: 2.85, fn: () => { waves.setRipple(1.0); }},
       { t: 2.90, fn: () => { screenShake(6, 0.22); }},
       { t: 3.50, fn: () => { postFx.bloomBoost(1.8, 0.6); overlay.popTagline(); }},
-      { t: 5.50, fn: () => { krakenOverlays.setEyeIntensity(0.55); waves.setRipple(0); }},
+      { t: 5.50, fn: () => { krakenOverlays.resetEyes(); waves.setRipple(0); }},
       { t: 7.00, fn: () => { plankton.pullStrength = 0; if (audio) audio.stopRumble(); }},
     ],
   };

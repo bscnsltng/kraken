@@ -68,9 +68,12 @@ const loader = [
   "mapEl.type = 'importmap';",
   'mapEl.textContent = JSON.stringify(importMap);',
   'document.head.appendChild(mapEl);',
+  // Use an inline import() expression so the importmap resolves ./src/main.js
+  // to its blob URL. A <script src="..."> attribute is a network fetch and is
+  // NOT intercepted by importmaps — using it would break self-containment.
   "const entry = document.createElement('script');",
   "entry.type = 'module';",
-  "entry.src = './src/main.js';",
+  'entry.textContent = "import(\'./src/main.js\');";',
   'document.body.appendChild(entry);',
   '</script>',
 ].join('\n');

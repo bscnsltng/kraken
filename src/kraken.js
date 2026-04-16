@@ -62,14 +62,21 @@ export function createKrakenOverlays(scene, heroBox) {
   hatMesh.position.set(heroBox.x, heroBox.y + heroBox.h * 0.30, 0.6);
   scene.add(hatMesh);
 
+  let overrideValue = null; // when non-null, update() uses this instead of the pulse
+
   return {
     eyes, hatMesh, hatUniforms: hatU,
     update(t) {
-      const pulse = 0.55 + 0.15 * Math.sin((t / 2.6) * Math.PI * 2);
-      for (const e of eyes) e.uniforms.uIntensity.value = pulse;
+      if (overrideValue !== null) {
+        for (const e of eyes) e.uniforms.uIntensity.value = overrideValue;
+      } else {
+        const pulse = 0.55 + 0.15 * Math.sin((t / 2.6) * Math.PI * 2);
+        for (const e of eyes) e.uniforms.uIntensity.value = pulse;
+      }
       hatU.uTime.value = t;
     },
-    setEyeIntensity(v) { for (const e of eyes) e.uniforms.uIntensity.value = v; },
+    setEyeIntensity(v) { overrideValue = v; },
+    resetEyes() { overrideValue = null; },
     animateEyeDrift(durationSec) {
       const start = performance.now();
       const tick = () => {

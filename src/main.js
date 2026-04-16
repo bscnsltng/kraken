@@ -155,12 +155,14 @@ if (!webglOK()) {
   };
 
   let activeSteps = null;
+  let activeDuration = 0;
   let momentStart = 0;
   function runMoment(variantKey) {
     if (!variants[variantKey]) { console.warn('[moment] unknown variant', variantKey); return; }
     const ctx = { plankton, krakenOverlays, lightning, waves, overlay, audio, postFx, krakenLurch, screenShake, robots, ink };
-    const { steps } = variants[variantKey](ctx);
+    const { steps, duration } = variants[variantKey](ctx);
     activeSteps = steps.map(s => ({ ...s, fired: false }));
+    activeDuration = duration;
     momentStart = clock.getElapsedTime();
     console.log('[moment]', variantKey, 'started');
   }
@@ -236,6 +238,7 @@ if (!webglOK()) {
         for (const s of activeSteps) {
           if (!s.fired && elapsedM >= s.t) { s.fired = true; s.fn(); }
         }
+        if (elapsedM >= activeDuration) { activeSteps = null; }
       }
       scheduler.tick(dt);
       lightning.update(dt);

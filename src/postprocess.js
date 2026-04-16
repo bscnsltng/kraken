@@ -86,8 +86,20 @@ export function setupPostProcessing(renderer, scene, camera) {
       tick();
     },
     desaturate(amount, durationSec) {
-      tweenUniform(fxUniforms.uDesat, amount, durationSec * 0.4);
-      setTimeout(() => tweenUniform(fxUniforms.uDesat, 0, durationSec * 0.6), durationSec * 400);
+      // rAF-driven two-phase tween: ramp up over 40% of duration, then ramp down over 60%.
+      const u = fxUniforms.uDesat;
+      const start = performance.now();
+      const upMs = durationSec * 400;
+      const totalMs = durationSec * 1000;
+      const tick = () => {
+        const e = performance.now() - start;
+        if (e >= totalMs) { u.value = 0; return; }
+        u.value = e < upMs
+          ? (e / upMs) * amount
+          : amount * (1 - (e - upMs) / (totalMs - upMs));
+        requestAnimationFrame(tick);
+      };
+      tick();
     },
     chromaticBurst(strength) { fxUniforms.uCA.value = strength; tweenUniform(fxUniforms.uCA, 0, 0.25); },
     update(t) { fxUniforms.uTime.value = t; },
