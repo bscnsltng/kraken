@@ -1,84 +1,166 @@
-// src/audio.js — WebAudio-synthesized storm bed + thunder + growl. No asset files.
+// src/audio.js — buffer playback with variant pools + per-play filter variation.
+// Each one-shot (thunder, growl, rumble) picks a random variant and applies
+// pitch/gain/pan/filter randomization so the same moment sounds fresh each time.
+
+const POOLS = {
+  stormBed: ['src/audio/storm-bed.mp3'],
+  rumble: [
+    'src/audio/bass-1-drop.mp3',
+    'src/audio/bass-2-linkinbio.mp3',
+    'src/audio/bass-3-drop.mp3',
+    'src/audio/bass-4-boom.mp3',
+  ],
+  roar: [
+    'src/audio/whale-1-haunting.mp3',
+    'src/audio/whale-2-humpback.mp3',
+    'src/audio/whale-3-song.mp3',
+    'src/audio/whale-4-creepy.mp3',
+    'src/audio/whale-5-haunting2.mp3',
+  ],
+  thunder: [
+    'src/audio/thunder-1-loud.mp3',
+    'src/audio/thunder-2-peals.mp3',
+    'src/audio/thunder-3-city.mp3',
+    'src/audio/thunder-4-dry.mp3',
+    'src/audio/thunder-5-clap.mp3',
+  ],
+  voice: ['src/audio/voice-accent.mp3'],
+};
+
+const rand = (lo, hi) => lo + Math.random() * (hi - lo);
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
 export function createAudio() {
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   const master = ctx.createGain();
-  master.gain.value = 0.25;
+  master.gain.value = 0.30;
   master.connect(ctx.destination);
 
-  let stormNode = null, stormGain = null;
-  function startStorm() {
-    if (stormNode) return;
-    const bufferSize = ctx.sampleRate * 4;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-    for (let i=0;i<bufferSize;i++) {
-      const w = Math.random()*2-1;
-      b0=0.99886*b0+w*0.0555179; b1=0.99332*b1+w*0.0750759;
-      b2=0.96900*b2+w*0.1538520; b3=0.86650*b3+w*0.3104856;
-      b4=0.55000*b4+w*0.5329522; b5=-0.7616*b5-w*0.0168980;
-      data[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11; b6=w*0.115926;
-    }
-    stormNode = ctx.createBufferSource();
-    stormNode.buffer = buffer; stormNode.loop = true;
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass'; filter.frequency.value = 600;
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.frequency.value = 0.05; lfoGain.gain.value = 200;
-    lfo.connect(lfoGain).connect(filter.frequency);
-    lfo.start();
-    stormGain = ctx.createGain(); stormGain.gain.value = 0.0;
-    stormNode.connect(filter).connect(stormGain).connect(master);
-    stormNode.start();
-    stormGain.gain.setTargetAtTime(0.5, ctx.currentTime, 0.5);
+  // buffer cache: path → AudioBuffer | null (null = load failed)
+  const buffers = {};
+
+  // Kick off async loads for every variant in every pool.
+  const allPaths = new Set();
+  for (const list of Object.values(POOLS)) list.forEach(p => allPaths.add(p));
+  for (const path of allPaths) {
+    fetch(path)
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
+      .then(arr => ctx.decodeAudioData(arr))
+      .then(buf => { buffers[path] = buf; })
+      .catch(err => {
+        console.warn(`[audio] ${path} failed to load:`, err.message);
+        buffers[path] = null;
+      });
   }
 
-  let rumbleGain = null, rumbleOsc = null;
+  function playVariant(pool, opts = {}) {
+    const path = pick(POOLS[pool]);
+    const buf = buffers[path];
+    if (!buf) return null;
+
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = !!opts.loop;
+    if (!opts.loop && opts.varyPitch !== false) {
+      src.playbackRate.value = rand(0.85, 1.10);
+    }
+
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = opts.loop ? 0 : rand(-0.25, 0.25);
+
+    let chainHead = src;
+    chainHead.connect(panner);
+
+    // 60% chance of lowpass filter for one-shots (never on loops)
+    let filter = null;
+    if (!opts.loop && Math.random() < 0.6) {
+      filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = rand(600, 1800);
+      panner.connect(filter);
+      chainHead = filter;
+    } else {
+      chainHead = panner;
+    }
+
+    const g = ctx.createGain();
+    const baseGain = opts.gain ?? 1.0;
+    g.gain.value = opts.loop ? 0.0 : baseGain * rand(0.8, 1.1);
+    chainHead.connect(g).connect(opts.destination ?? master);
+    src.start(0);
+    return { src, gain: g, panner, filter };
+  }
+
+  // ── Storm bed: looping low-volume background ──
+  let storm = null;
+  function startStorm() {
+    if (storm) return;
+    const tryStart = () => {
+      const handle = playVariant('stormBed', { loop: true, gain: 0.0, varyPitch: false });
+      if (!handle) {
+        setTimeout(tryStart, 300);
+        return;
+      }
+      storm = handle;
+      storm.gain.gain.setTargetAtTime(0.55, ctx.currentTime, 0.6);
+    };
+    tryStart();
+  }
+
+  // ── Rumble: looping sub-bass for moment buildup ──
+  let rumble = null;
   function startRumble() {
-    if (rumbleGain) return;
-    rumbleOsc = ctx.createOscillator(); rumbleOsc.type = 'sawtooth'; rumbleOsc.frequency.value = 38;
-    const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 90;
-    rumbleGain = ctx.createGain(); rumbleGain.gain.value = 0.0;
-    rumbleOsc.connect(filter).connect(rumbleGain).connect(master);
-    rumbleOsc.start();
-    rumbleGain.gain.setTargetAtTime(0.4, ctx.currentTime, 0.5);
+    if (rumble) return;
+    rumble = playVariant('rumble', { loop: true, gain: 0.0, varyPitch: false });
+    if (!rumble) return;
+    rumble.gain.gain.setTargetAtTime(0.7, ctx.currentTime, 0.35);
     setTimeout(stopRumble, 6000);
   }
   function stopRumble() {
-    if (!rumbleGain) return;
-    rumbleGain.gain.setTargetAtTime(0.0, ctx.currentTime, 0.4);
+    if (!rumble) return;
+    rumble.gain.gain.setTargetAtTime(0.0, ctx.currentTime, 0.4);
     setTimeout(() => {
-      try { rumbleOsc.stop(); rumbleGain.disconnect(); } catch (_) {}
-      rumbleGain = null; rumbleOsc = null;
+      try { rumble.src.stop(); rumble.gain.disconnect(); rumble.panner.disconnect(); } catch (_) {}
+      rumble = null;
     }, 1000);
   }
 
+  // ── Thunder: one-shot with variant + random filter ──
   function thunder() {
-    const bufferSize = ctx.sampleRate * 2;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i=0;i<bufferSize;i++) data[i] = (Math.random()*2-1) * Math.exp(-i / (ctx.sampleRate * 0.6));
-    const src = ctx.createBufferSource(); src.buffer = buffer;
-    const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 280;
-    const g = ctx.createGain(); g.gain.value = 1.4;
-    src.connect(filter).connect(g).connect(master);
-    src.start();
+    playVariant('thunder', { gain: 1.3 });
   }
 
+  // ── Growl (Kraken Roar): layered whale variant + voice accent ──
   function growl() {
-    const osc = ctx.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = 55;
-    const lfo = ctx.createOscillator(); lfo.frequency.value = 6.5;
-    const lfoGain = ctx.createGain(); lfoGain.gain.value = 12;
-    lfo.connect(lfoGain).connect(osc.frequency);
-    const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 220;
-    const g = ctx.createGain(); g.gain.value = 0.0;
-    osc.connect(filter).connect(g).connect(master);
-    osc.start(); lfo.start();
-    g.gain.setTargetAtTime(0.6, ctx.currentTime, 0.05);
-    setTimeout(() => g.gain.setTargetAtTime(0.0, ctx.currentTime, 0.3), 1500);
-    setTimeout(() => { try { osc.stop(); lfo.stop(); } catch (_) {} }, 2500);
+    playVariant('roar', { gain: 1.0 });
+    // Voice accent layered on top, slightly delayed
+    setTimeout(() => {
+      playVariant('voice', { gain: 0.9, varyPitch: false });
+    }, 350);
   }
 
-  return { startStorm, startRumble, stopRumble, thunder, growl };
+  // ── Muffle storm low-pass envelope for Roar ──
+  function muffleStorm(durationSec = 1.5) {
+    if (!storm) return;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 800;
+    try {
+      storm.gain.disconnect();
+      storm.gain.connect(filter).connect(master);
+      filter.frequency.setTargetAtTime(180, ctx.currentTime, 0.1);
+      setTimeout(() => {
+        filter.frequency.setTargetAtTime(800, ctx.currentTime, 0.4);
+        setTimeout(() => {
+          try {
+            storm.gain.disconnect();
+            storm.gain.connect(master);
+            filter.disconnect();
+          } catch (_) {}
+        }, 800);
+      }, durationSec * 1000);
+    } catch (_) {}
+  }
+
+  return { startStorm, startRumble, stopRumble, thunder, growl, muffleStorm };
 }
