@@ -41,13 +41,18 @@ export async function createRobots(scene) {
     loadOrPlaceholder('src/art/robot-1.png'),
     loadOrPlaceholder('src/art/robot-2.png'),
   ]);
-  const w = 0.18, h = 0.24;
+  // Bigger (0.18 → 0.26) and repositioned closer to center of frame.
+  // Previous placement (y=-0.78) fell INSIDE the now-taller ocean surface
+  // (bottom 38%) AND deep inside the hard vignette (uVignette=0.95 at
+  // corners), so they were barely visible. New y=-0.40 sits just above
+  // the ocean line with the robots clearly reading against the dark void.
+  const w = 0.26, h = 0.34;
 
   const robots = [];
   for (const [sign, tex] of [[-1, tex1], [1, tex2]]) {
     const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
-    mesh.position.set(sign * 0.65, -0.78, 1.0);
+    mesh.position.set(sign * 0.58, -0.40, 1.0);
     mesh.rotation.z = sign * -0.35;
     scene.add(mesh);
 

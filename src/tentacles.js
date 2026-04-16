@@ -52,7 +52,14 @@ function buildMesh(s, z, scene) {
 }
 
 export function createTentacles(scene) {
-  const cornerMeshes = CORNER_SPECS.map(s => buildMesh(s, 0.3, scene));
+  // All tentacles now render BEHIND the hero kraken (negative z) so the
+  // thick fat-base portion — which originates at pivots inside the kraken
+  // silhouette — is occluded by the kraken PNG. Only the parts that
+  // extend beyond the kraken's body are visible. This matches the
+  // composition of the team logo: tentacles emerge from around the kraken,
+  // they don't cover its face. Prior z=+0.3 made the tentacle bases read
+  // as "two purple clouds" over the logo.
+  const cornerMeshes = CORNER_SPECS.map(s => buildMesh(s, -0.5, scene));
   const sideMeshes   = SIDE_SPECS.map(s => buildMesh(s, -2.0, scene));
   const allMeshes    = [...cornerMeshes, ...sideMeshes];
   const lowerMeshes  = cornerMeshes.filter(m => m.spec.lower);
