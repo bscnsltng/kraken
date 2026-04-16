@@ -16,6 +16,7 @@ import { createScheduler } from './scheduler.js';
 import { createLightning } from './lightning.js';
 import { lightningStrike } from './moments/lightning.js';
 import { krakenRoar } from './moments/roar.js';
+import { theWatching } from './moments/watching.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -107,7 +108,7 @@ const { scene, camera, renderer } = createScene(wrap);
   };
   let audio = null;
 
-  const variants = { lightning: lightningStrike, roar: krakenRoar };
+  const variants = { lightning: lightningStrike, roar: krakenRoar, watching: theWatching };
 
   let activeSteps = null;
   let momentStart = 0;
