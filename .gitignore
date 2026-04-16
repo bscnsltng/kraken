@@ -1,0 +1,4 @@
+.superpowers/brainstorm/*/state/
+.DS_Store
+node_modules/
+*.log
