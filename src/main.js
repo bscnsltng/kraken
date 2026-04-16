@@ -19,6 +19,8 @@ import { krakenRoar } from './moments/roar.js';
 import { theWatching } from './moments/watching.js';
 import { beatDown } from './moments/beat-down.js';
 import { borderSurge } from './moments/border-surge.js';
+import { inkVertex, inkFragment } from './shaders/ink.glsl.js';
+import { inkEruption } from './moments/ink-eruption.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -76,6 +78,31 @@ const { scene, camera, renderer } = createScene(wrap);
 
   const lightning = createLightning(scene);
 
+  const inkU = { uTime: { value: 0 }, uIntensity: { value: 0 } };
+  const inkMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(2, 2),
+    new THREE.ShaderMaterial({
+      vertexShader: inkVertex, fragmentShader: inkFragment,
+      uniforms: inkU, transparent: true, depthWrite: false,
+    })
+  );
+  inkMesh.position.z = 0.7;
+  scene.add(inkMesh);
+
+  const ink = {
+    uniforms: inkU,
+    expand(from, to, durationSec) {
+      const start = performance.now();
+      const tick = () => {
+        const e = (performance.now() - start) / 1000;
+        if (e >= durationSec) { inkU.uIntensity.value = to; return; }
+        inkU.uIntensity.value = from + (to - from) * (e / durationSec);
+        requestAnimationFrame(tick);
+      };
+      tick();
+    },
+  };
+
   function krakenLurch(scale, dur) {
     const start = performance.now();
     function frame() {
@@ -112,14 +139,14 @@ const { scene, camera, renderer } = createScene(wrap);
 
   const variants = {
     lightning: lightningStrike, roar: krakenRoar, watching: theWatching,
-    beat: beatDown, surge: borderSurge,
+    beat: beatDown, surge: borderSurge, ink: inkEruption,
   };
 
   let activeSteps = null;
   let momentStart = 0;
   function runMoment(variantKey) {
     if (!variants[variantKey]) { console.warn('[moment] unknown variant', variantKey); return; }
-    const ctx = { plankton, krakenOverlays, lightning, waves, overlay, audio, postFx, krakenLurch, screenShake, robots };
+    const ctx = { plankton, krakenOverlays, lightning, waves, overlay, audio, postFx, krakenLurch, screenShake, robots, ink };
     const { steps } = variants[variantKey](ctx);
     activeSteps = steps.map(s => ({ ...s, fired: false }));
     momentStart = clock.getElapsedTime();
@@ -144,6 +171,7 @@ const { scene, camera, renderer } = createScene(wrap);
     const dt = t - lastT; lastT = t;
     voidUniforms.uTime.value = t;
     cloudsUniforms.uTime.value = t;
+    inkU.uTime.value = t;
     tentacles.update(t);
     krakenOverlays.update(t);
     plankton.update();
