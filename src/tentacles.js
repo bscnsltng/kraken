@@ -1,6 +1,6 @@
 // src/tentacles.js — six tentacles around the kraken with independent sway
 import * as THREE from './vendor/three.module.min.js';
-import { tentacleVertex, tentacleFragment } from './shaders/tentacles.glsl.js';
+import { tentacleVertex, tentacleFragment } from './shaders/multi-segment-tentacle.glsl.js';
 
 const ROYAL = new THREE.Color(0x6B0AC9);
 const TEAL  = new THREE.Color(0x00E5CC);
