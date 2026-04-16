@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Scheduler tests</title>
+<style>
+  body { font-family: monospace; background: #111; color: #ddd; padding: 24px; }
+  .pass { color: #6f6; } .fail { color: #f66; font-weight: bold; }
+</style></head>
+<body>
+<h1>Scheduler tests</h1>
+<div id="out"></div>
+<script type="module">
+  import { el } from '../src/dom.js';
+  import { createScheduler } from '../src/scheduler.js';
+  const out = document.getElementById('out');
+  let pass = 0, fail = 0;
+  function record(ok, msg) {
+    const line = el('div', { class: ok ? 'pass' : 'fail' }, (ok ? 'PASS  ' : 'FAIL  ') + msg);
+    out.appendChild(line);
+    if (ok) pass++; else fail++;
+  }
+
+  const reg = { lightning: 30, roar: 20, watching: 15, surge: 15, ink: 15, beat: 5 };
+  let rng_state = 0.42;
+  const rng = () => { rng_state = (rng_state * 9301 + 49297) % 233280 / 233280; return rng_state; };
+  const sch = createScheduler({ weights: reg, rng, intervalMin: 65, intervalMax: 85 });
+
+  for (let i = 0; i < 50; i++) {
+    const v = sch.pickVariant();
+    record(reg.hasOwnProperty(v), `pickVariant returns a registered key (got "${v}")`);
+  }
+
+  let prev = null, same = 0;
+  for (let i = 0; i < 1000; i++) {
+    const v = sch.pickVariant();
+    if (v === prev) same++;
+    prev = v;
+  }
+  record(same === 0, `no back-to-back repeats over 1000 picks (saw ${same})`);
+
+  const counts = {};
+  for (const k of Object.keys(reg)) counts[k] = 0;
+  for (let i = 0; i < 20000; i++) counts[sch.pickVariant()]++;
+  for (const k of Object.keys(reg)) {
+    const expectedPct = reg[k];
+    const actualPct = (counts[k] / 20000) * 100;
+    const within = Math.abs(actualPct - expectedPct) < 3;
+    record(within, `${k}: expected ~${expectedPct}%, got ${actualPct.toFixed(2)}%`);
+  }
+
+  for (let i = 0; i < 200; i++) {
+    const n = sch.nextInterval();
+    record(n >= 65 && n <= 85, `nextInterval in [65, 85] (got ${n.toFixed(2)})`);
+  }
+
+  let fired = 0;
+  const sch2 = createScheduler({
+    weights: reg, rng: () => 0.5, intervalMin: 10, intervalMax: 10,
+    onMoment: () => { fired++; },
+  });
+  sch2.tick(5); record(fired === 0, 'tick(5): no fire yet');
+  sch2.tick(5); record(fired === 1, `tick(5)+tick(5)=10s: fired once (fired=${fired})`);
+  sch2.tick(10); record(fired === 2, `another 10s: fired twice (fired=${fired})`);
+
+  let fired3 = 0;
+  const sch3 = createScheduler({ weights: reg, rng: () => 0.5, intervalMin: 100, intervalMax: 100, onMoment: () => fired3++ });
+  const v3 = sch3.trigger();
+  record(reg.hasOwnProperty(v3), `trigger() returns valid variant (got "${v3}")`);
+  record(fired3 === 1, 'trigger() fires onMoment immediately');
+
+  const summary = el('div', { style: { marginTop: '12px' } }, `${pass} passed, ${fail} failed.`);
+  out.appendChild(summary);
+  document.title = fail === 0 ? `✓ ${pass} passed` : `✗ ${fail} failed`;
+</script>
+</body></html>
