@@ -1,11 +1,11 @@
 // src/moments/ink-eruption.js — 6s
 export function inkEruption(ctx) {
-  const { krakenOverlays, ink } = ctx;
+  const { krakenOverlays, ink, residue } = ctx;
   return {
     duration: 6.0,
     steps: [
       { t: 0.0, fn: () => { ink.expand(0.0, 0.85, 1.5); krakenOverlays.setEyeIntensity(1.4); }},
-      { t: 4.5, fn: () => { ink.expand(0.85, 0.0, 1.5); krakenOverlays.resetEyes(); }},
+      { t: 4.5, fn: () => { ink.expand(0.85, 0.0, 1.5); krakenOverlays.resetEyes(); residue.release({ x: 0, y: 0.05 }); }},
     ],
   };
 }

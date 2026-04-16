@@ -74,11 +74,12 @@ export function setupPostProcessing(renderer, scene, camera) {
     composer, fxUniforms, bloomPass,
     flash(strength) { fxUniforms.uFlash.value = strength; tweenUniform(fxUniforms.uFlash, 0, 0.45); },
     bloomBoost(target, durationSec) {
-      const start = bloomPass.strength;
+      const original = bloomPass.strength;
+      const start = original;
       const t0 = performance.now();
       const tick = () => {
         const e = (performance.now() - t0) / 1000;
-        if (e >= durationSec * 2) { bloomPass.strength = 0.55; return; }
+        if (e >= durationSec * 2) { bloomPass.strength = original; return; }
         const k = e < durationSec ? e / durationSec : 2 - e / durationSec;
         bloomPass.strength = start + (target - start) * k;
         requestAnimationFrame(tick);

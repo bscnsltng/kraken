@@ -7,7 +7,7 @@ import { voidVertex, voidFragment } from './shaders/void.glsl.js';
 import { cloudsVertex, cloudsFragment } from './shaders/clouds.glsl.js';
 import { createTentacles } from './tentacles.js';
 import { createKrakenOverlays } from './kraken.js';
-import { createPlankton } from './particles.js';
+import { createPlankton, createSpray, createEmbers, createResidue } from './particles.js';
 import { createWaves } from './waves.js';
 import { createRobots } from './robots.js';
 import { mountOverlay } from './overlay.js';
@@ -37,10 +37,11 @@ if (!webglOK()) {
   const { scene, camera, renderer } = createScene(wrap);
 
 (async () => {
-  const { audioEnabled } = await setupSplash();
+  const assetsReady = loadAssets();
+  const { audioEnabled } = await setupSplash({ assetsReady });
   let assets;
   try {
-    assets = await loadAssets();
+    assets = await assetsReady;
   } catch (err) {
     showAssetError(err);
     return;
@@ -83,6 +84,9 @@ if (!webglOK()) {
   const krakenOverlays = createKrakenOverlays(scene, heroBox);
 
   const plankton = createPlankton(scene);
+  const spray = createSpray(scene);
+  const embers = createEmbers(scene);
+  const residue = createResidue(scene);
   const waves = createWaves(scene);
   const robots = createRobots(scene);
   const overlay = mountOverlay(document.getElementById('overlay'));
@@ -103,9 +107,12 @@ if (!webglOK()) {
 
   const ink = {
     uniforms: inkU,
+    _gen: 0,
     expand(from, to, durationSec) {
+      const myGen = ++this._gen;
       const start = performance.now();
       const tick = () => {
+        if (myGen !== this._gen) return;
         const e = (performance.now() - start) / 1000;
         if (e >= durationSec) { inkU.uIntensity.value = to; return; }
         inkU.uIntensity.value = from + (to - from) * (e / durationSec);
@@ -159,7 +166,7 @@ if (!webglOK()) {
   let momentStart = 0;
   function runMoment(variantKey) {
     if (!variants[variantKey]) { console.warn('[moment] unknown variant', variantKey); return; }
-    const ctx = { plankton, krakenOverlays, lightning, waves, overlay, audio, postFx, krakenLurch, screenShake, robots, ink };
+    const ctx = { plankton, spray, embers, residue, krakenOverlays, lightning, waves, overlay, audio, postFx, krakenLurch, screenShake, robots, ink, tentacles };
     const { steps, duration } = variants[variantKey](ctx);
     activeSteps = steps.map(s => ({ ...s, fired: false }));
     activeDuration = duration;
@@ -230,6 +237,9 @@ if (!webglOK()) {
       tentacles.update(t);
       krakenOverlays.update(t);
       plankton.update();
+      spray.update(dt);
+      embers.update(dt);
+      residue.update(dt);
       waves.update(t);
       robots.update(t);
       beadGlints.update(dt);

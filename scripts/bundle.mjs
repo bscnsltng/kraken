@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const DEV_HTML = join(ROOT, 'backdrop-dev.html');
 const OUT_HTML = join(ROOT, 'backdrop-final.html');
+const INDEX_HTML = join(ROOT, 'index.html');
 
 function walkJsFiles(dir) {
   const out = [];
@@ -81,4 +82,5 @@ const loader = [
 html = html.replace(/<\/body>/, `${loader}\n</body>`);
 
 writeFileSync(OUT_HTML, html);
-console.log(`[bundle] wrote ${OUT_HTML} (${(html.length / 1024).toFixed(0)} KB)`);
+writeFileSync(INDEX_HTML, html);
+console.log(`[bundle] wrote ${OUT_HTML} and ${INDEX_HTML} (${(html.length / 1024).toFixed(0)} KB each)`);

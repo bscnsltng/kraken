@@ -15,7 +15,7 @@ export function startBeadGlints(rootEl) {
         if (!stripEl) return;
         stripEl.style.transition = 'opacity 100ms ease-out, filter 100ms ease-out';
         stripEl.style.opacity = '1.0';
-        stripEl.style.filter = 'brightness(1.8) saturate(1.3)';
+        stripEl.style.filter = 'brightness(2.0) saturate(1.3)';
         setTimeout(() => {
           stripEl.style.transition = 'opacity 600ms ease-in, filter 600ms ease-in';
           stripEl.style.opacity = '0.9';

@@ -5,10 +5,11 @@ export const tentacleVertex = /* glsl */ `
   uniform float uPeriod;
   uniform float uAmp;
   uniform vec2  uPivot;
+  uniform float uExtraRot;
   varying vec2 vUv;
   void main() {
     vUv = uv;
-    float a = sin((uTime / uPeriod + uPhase) * 6.28318) * uAmp;
+    float a = sin((uTime / uPeriod + uPhase) * 6.28318) * uAmp + uExtraRot;
     float ca = cos(a), sa = sin(a);
     vec2 p = position.xy - uPivot;
     p = vec2(ca * p.x - sa * p.y, sa * p.x + ca * p.y);

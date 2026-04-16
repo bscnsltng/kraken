@@ -63,6 +63,7 @@ export function createKrakenOverlays(scene, heroBox) {
   scene.add(hatMesh);
 
   let overrideValue = null; // when non-null, update() uses this instead of the pulse
+  let driftGen = 0;
 
   return {
     eyes, hatMesh, hatUniforms: hatU,
@@ -78,8 +79,10 @@ export function createKrakenOverlays(scene, heroBox) {
     setEyeIntensity(v) { overrideValue = v; },
     resetEyes() { overrideValue = null; },
     animateEyeDrift(durationSec) {
+      const myGen = ++driftGen;
       const start = performance.now();
       const tick = () => {
+        if (myGen !== driftGen) return; // a newer call superseded us
         const e2 = (performance.now() - start) / 1000;
         if (e2 >= durationSec) { for (const eye of eyes) eye.mesh.position.x = eye.baseX; return; }
         const k = e2 / durationSec;
