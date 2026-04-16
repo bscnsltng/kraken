@@ -212,29 +212,36 @@ if (!webglOK()) {
 
   const clock = new THREE.Clock();
   let lastT = 0;
+  let paused = false;
+  document.addEventListener('visibilitychange', () => {
+    paused = document.hidden;
+    if (!paused) lastT = clock.getElapsedTime();  // avoid huge dt jump on resume
+  });
   function loop() {
-    updateFps();
-    const t = clock.getElapsedTime();
-    const dt = t - lastT; lastT = t;
-    voidUniforms.uTime.value = t;
-    cloudsUniforms.uTime.value = t;
-    inkU.uTime.value = t;
-    tentacles.update(t);
-    krakenOverlays.update(t);
-    plankton.update();
-    waves.update(t);
-    robots.update(t);
-    beadGlints.update(dt);
-    if (activeSteps) {
-      const elapsedM = t - momentStart;
-      for (const s of activeSteps) {
-        if (!s.fired && elapsedM >= s.t) { s.fired = true; s.fn(); }
+    if (!paused) {
+      updateFps();
+      const t = clock.getElapsedTime();
+      const dt = t - lastT; lastT = t;
+      voidUniforms.uTime.value = t;
+      cloudsUniforms.uTime.value = t;
+      inkU.uTime.value = t;
+      tentacles.update(t);
+      krakenOverlays.update(t);
+      plankton.update();
+      waves.update(t);
+      robots.update(t);
+      beadGlints.update(dt);
+      if (activeSteps) {
+        const elapsedM = t - momentStart;
+        for (const s of activeSteps) {
+          if (!s.fired && elapsedM >= s.t) { s.fired = true; s.fn(); }
+        }
       }
+      scheduler.tick(dt);
+      lightning.update(dt);
+      if (window.__directRender) renderer.render(scene, camera);
+      else { postFx.update(t); postFx.composer.render(); }
     }
-    scheduler.tick(dt);
-    lightning.update(dt);
-    if (window.__directRender) renderer.render(scene, camera);
-    else { postFx.update(t); postFx.composer.render(); }
     requestAnimationFrame(loop);
   }
   loop();
