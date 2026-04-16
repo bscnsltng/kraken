@@ -9,6 +9,7 @@ import { createTentacles } from './tentacles.js';
 import { createKrakenOverlays } from './kraken.js';
 import { createPlankton } from './particles.js';
 import { createWaves } from './waves.js';
+import { createRobots } from './robots.js';
 
 const wrap = document.getElementById('canvas-wrap');
 const { scene, camera, renderer } = createScene(wrap);
@@ -60,6 +61,7 @@ const { scene, camera, renderer } = createScene(wrap);
 
   const plankton = createPlankton(scene);
   const waves = createWaves(scene);
+  const robots = createRobots(scene);
 
   const clock = new THREE.Clock();
   function loop() {
@@ -70,6 +72,7 @@ const { scene, camera, renderer } = createScene(wrap);
     krakenOverlays.update(t);
     plankton.update();
     waves.update(t);
+    robots.update(t);
     renderer.render(scene, camera);
     requestAnimationFrame(loop);
   }
